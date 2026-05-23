@@ -109,5 +109,61 @@ async function loadPodcastArtwork() {
   }
 }
 
+// Classify article tag from title/content
+function getArticleTag(title) {
+  const t = title.toLowerCase();
+  if (t.includes('travel') || t.includes('japan') || t.includes('places') || t.includes('itinerary')) return 'Travel';
+  if (t.includes('ai') || t.includes('genai') || t.includes('agent') || t.includes('claude') || t.includes('llm')) return 'AI';
+  if (t.includes('tpm') || t.includes('program') || t.includes('smartsheet') || t.includes('sdlc') || t.includes('leadership')) return 'TPM';
+  return 'Article';
+}
+
+// Extract first image from Medium HTML content
+function extractThumb(content) {
+  const m = content.match(/<img[^>]+src="([^"]+)"/);
+  return m ? m[1] : null;
+}
+
+// Fallback emoji per tag
+const tagEmoji = { Travel: '✈️', AI: '🤖', TPM: '📊', Article: '📝' };
+
+async function loadBlog() {
+  const grid = document.getElementById('blog-grid');
+  try {
+    const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fmedium.com%2Ffeed%2F%40goyalsandeep2k&count=10');
+    const data = await res.json();
+    if (data.status !== 'ok' || !data.items?.length) throw new Error('No items');
+
+    grid.innerHTML = data.items.map(item => {
+      const tag = getArticleTag(item.title);
+      const thumb = item.thumbnail || extractThumb(item.content || '');
+      const date = new Date(item.pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      // Strip HTML from description
+      const excerpt = (item.description || '').replace(/<[^>]+>/g, '').replace(/&[^;]+;/g, ' ').trim().slice(0, 160);
+
+      const thumbHtml = thumb
+        ? `<div class="blog-card-thumb"><img src="${thumb}" alt="${item.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'blog-thumb-fallback\\'>${tagEmoji[tag]}</div>'"></div>`
+        : `<div class="blog-card-thumb"><div class="blog-thumb-fallback">${tagEmoji[tag]}</div></div>`;
+
+      return `
+        <a href="${item.link}" target="_blank" class="blog-card">
+          ${thumbHtml}
+          <div class="blog-card-body">
+            <div class="blog-card-tag">${tag}</div>
+            <div class="blog-card-title">${item.title}</div>
+            <div class="blog-card-excerpt">${excerpt}</div>
+            <div class="blog-card-meta">
+              <span>${date}</span>
+              <span class="blog-card-read">Read on Medium →</span>
+            </div>
+          </div>
+        </a>`;
+    }).join('');
+  } catch (e) {
+    grid.innerHTML = `<p style="color:var(--text-muted);font-size:14px;padding:16px 0">Could not load posts — <a href="https://medium.com/@goyalsandeep2k" target="_blank">view on Medium directly</a>.</p>`;
+  }
+}
+
 loadRepos();
 loadPodcastArtwork();
+loadBlog();
