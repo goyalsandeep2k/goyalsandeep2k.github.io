@@ -134,7 +134,7 @@ async function loadBlog() {
     const data = await res.json();
     if (data.status !== 'ok' || !data.items?.length) throw new Error('No items');
 
-    grid.innerHTML = data.items.map(item => {
+    grid.innerHTML = data.items.slice(0, 4).map(item => {
       const tag = getArticleTag(item.title);
       const thumb = item.thumbnail || extractThumb(item.content || '');
       const date = new Date(item.pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
