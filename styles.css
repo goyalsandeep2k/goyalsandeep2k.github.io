@@ -647,6 +647,167 @@ code {
 .book-title { font-size: 14px; font-weight: 600; color: var(--text); }
 .book-author { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
+/* ===== COMPANY LOGOS IN TIMELINE ===== */
+.timeline-company {
+  display: flex; align-items: center; gap: 7px;
+}
+.co-logo {
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  object-fit: contain;
+  flex-shrink: 0;
+  background: var(--surface2);
+}
+
+/* ===== BOOK GRID ===== */
+.book-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.book-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+  background: var(--surface2);
+}
+.book-card:hover { border-color: var(--accent); box-shadow: var(--shadow-hover); transform: translateY(-2px); text-decoration: none; }
+.book-cover-wrap {
+  width: 100%; aspect-ratio: 2/3;
+  overflow: hidden;
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  max-height: 160px;
+}
+.book-cover-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.book-cover-fallback {
+  font-size: 40px;
+  opacity: 0.4;
+}
+.book-card-info {
+  padding: 10px 12px;
+}
+.book-card .book-title { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.book-card .book-author { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+/* ===== PODCAST ARTWORK ===== */
+.podcast-art-wrap {
+  width: 56px; height: 56px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.podcast-art-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: none;
+}
+.podcast-art-img.loaded { display: block; }
+.podcast-art-fallback {
+  font-size: 26px;
+  line-height: 1;
+}
+.pod-platform {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* ===== INFLUENCER AVATAR CARDS ===== */
+.inf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.inf-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.inf-card:hover { border-color: var(--accent); box-shadow: var(--shadow-hover); }
+.inf-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--c1), var(--c2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 800; color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  letter-spacing: 0.5px;
+}
+.inf-card-name { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.2; }
+.inf-card-desc { font-size: 11px; color: var(--text-muted); line-height: 1.45; }
+
+/* ===== HOBBY TILES ===== */
+.hobbies-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.hobby-tile {
+  background: var(--hc);
+  border: 1px solid var(--hborder);
+  border-radius: 10px;
+  padding: 16px 8px 12px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  transition: transform 0.1s, box-shadow 0.15s;
+}
+.hobby-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.hobby-emoji { font-size: 28px; line-height: 1; }
+.hobby-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+/* ===== EDUCATION LOGOS ===== */
+.edu-logo-wrap {
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  padding: 4px;
+}
+.edu-logo-img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+}
+
+/* ===== CERT LOGOS ===== */
+.cert-logo-wrap {
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  padding: 4px;
+}
+.cert-logo-img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+}
+
 /* ===== FOOTER ===== */
 footer {
   border-top: 1px solid var(--border);

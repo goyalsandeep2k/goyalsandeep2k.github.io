@@ -77,4 +77,37 @@ async function loadRepos() {
   }
 }
 
+// Fetch podcast artwork via iTunes API
+async function loadPodcastArtwork() {
+  const podcasts = [
+    { id: 'art-jre',   query: 'joe rogan experience',  fallback: '🎙️' },
+    { id: 'art-tim',   query: 'tim ferriss show',       fallback: '⚡' },
+    { id: 'art-jocko', query: 'jocko willink podcast',  fallback: '🪖' },
+  ];
+
+  for (const pod of podcasts) {
+    try {
+      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(pod.query)}&media=podcast&entity=podcast&limit=1`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.results && data.results.length > 0) {
+        const artwork = data.results[0].artworkUrl600 || data.results[0].artworkUrl100;
+        if (artwork) {
+          const img = document.getElementById(pod.id);
+          if (img) {
+            img.src = artwork;
+            img.classList.add('loaded');
+            // hide fallback emoji
+            const fallback = img.closest('.podcast-art-wrap')?.querySelector('.podcast-art-fallback');
+            if (fallback) fallback.style.display = 'none';
+          }
+        }
+      }
+    } catch (e) {
+      // fallback emoji stays visible
+    }
+  }
+}
+
 loadRepos();
+loadPodcastArtwork();
