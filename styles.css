@@ -417,6 +417,66 @@ code {
 .timeline-desc { font-size: 15px; color: var(--text-muted); line-height: 1.65; margin-bottom: 14px; }
 .timeline-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 
+/* ===== EXPERIENCE LOGO STRIP ===== */
+.exp-logo-strip {
+  margin-top: 48px;
+  padding-top: 36px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.exp-logo-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+.exp-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+}
+.exp-logo-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 48px;
+}
+.exp-logo-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.85;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.exp-logo-img:hover {
+  opacity: 1;
+  transform: scale(1.08);
+}
+.exp-logo-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+.exp-logo-years {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.exp-logo-divider {
+  width: 1px;
+  height: 60px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
 /* ===== TAGS ===== */
 .tag {
   background: var(--surface2);
