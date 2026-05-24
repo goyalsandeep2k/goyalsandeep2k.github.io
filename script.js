@@ -135,11 +135,11 @@ const tagEmoji = { Travel: '✈️', AI: '🤖', TPM: '📊', Article: '📝' };
 async function loadBlog() {
   const grid = document.getElementById('blog-grid');
   try {
-    const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fmedium.com%2Ffeed%2F%40goyalsandeep2k&count=3');
+    const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fmedium.com%2Ffeed%2F%40goyalsandeep2k&count=2');
     const data = await res.json();
     if (data.status !== 'ok' || !data.items?.length) throw new Error('No items');
 
-    grid.innerHTML = data.items.slice(0, 3).map(item => {
+    grid.innerHTML = data.items.slice(0, 2).map(item => {
       const tag = getArticleTag(item.title);
       const thumb = item.thumbnail || extractThumb(item.content || '');
       const date = new Date(item.pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
