@@ -135,30 +135,43 @@ const tagEmoji = { Travel: '✈️', AI: '🤖', TPM: '📊', Article: '📝' };
 async function loadBlog() {
   const grid = document.getElementById('blog-grid');
   try {
-    const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fmedium.com%2Ffeed%2F%40goyalsandeep2k');
-    const data = await res.json();
-    if (data.status !== 'ok' || !data.items?.length) throw new Error('No items');
+    const FEED = 'https://medium.com/feed/@goyalsandeep2k';
+    const res = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(FEED)}`);
+    const text = await res.text();
+    if (!text || !text.includes('<item>')) throw new Error('empty');
 
-    grid.innerHTML = data.items.slice(0, 2).map(item => {
-      const tag = getArticleTag(item.title);
-      const thumb = item.thumbnail || extractThumb(item.content || '');
-      const date = new Date(item.pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-      const excerpt = (item.description || item.content || '')
-        .replace(/<[^>]+>/g, '').replace(/&[^;]+;/g, ' ').trim().slice(0, 150);
-      const wordCount = (item.content || '').replace(/<[^>]+>/g, '').split(/\s+/).length;
-      const readTime = `${Math.max(1, Math.round(wordCount / 200))} min read`;
+    const xml = new DOMParser().parseFromString(text, 'text/xml');
+    const nodes = [...xml.querySelectorAll('item')].slice(0, 2);
+    if (!nodes.length) throw new Error('no items');
+
+    grid.innerHTML = nodes.map(el => {
+      const title = el.querySelector('title')?.textContent || '';
+      const guid  = el.querySelector('guid')?.textContent?.trim() || '';
+      // Medium RSS: <link> is a text node between two tags — fall back to guid
+      const linkEl = el.querySelector('link');
+      const link = (linkEl?.nextSibling?.nodeValue || linkEl?.textContent || guid).trim();
+      const pubDate = el.querySelector('pubDate')?.textContent || '';
+      const encoded = el.getElementsByTagNameNS('http://purl.org/rss/1.0/modules/content/', 'encoded')[0]?.textContent || '';
+      const description = el.querySelector('description')?.textContent || '';
+
+      const tag     = getArticleTag(title);
+      const thumb   = extractThumb(encoded);
+      const date    = pubDate ? new Date(pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+      const excerpt = (description || encoded).replace(/<[^>]+>/g, '').replace(/&[^;]+;/g, ' ').trim().slice(0, 150);
+      const words   = encoded.replace(/<[^>]+>/g, '').split(/\s+/).length;
+      const readTime = `${Math.max(1, Math.round(words / 200))} min read`;
       const thumbHtml = thumb
-        ? `<div class="blog-card-thumb"><img src="${thumb}" alt="${item.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'blog-thumb-fallback\\'>${tagEmoji[tag]}</div>'"></div>`
+        ? `<div class="blog-card-thumb"><img src="${thumb}" alt="${title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'blog-thumb-fallback\\'>${tagEmoji[tag]}</div>'"></div>`
         : `<div class="blog-card-thumb"><div class="blog-thumb-fallback">${tagEmoji[tag]}</div></div>`;
       return `
-        <a href="${item.link}" target="_blank" class="blog-card">
+        <a href="${link}" target="_blank" class="blog-card">
           ${thumbHtml}
           <div class="blog-card-body">
             <div class="blog-card-tag-row">
               <span class="blog-card-tag">${tag}</span>
               <span class="blog-card-readtime">⏱ ${readTime}</span>
             </div>
-            <div class="blog-card-title">${item.title}</div>
+            <div class="blog-card-title">${title}</div>
             <div class="blog-card-excerpt">${excerpt}</div>
             <div class="blog-card-meta">
               <span>${date}</span>
