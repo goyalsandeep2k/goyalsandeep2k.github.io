@@ -80,9 +80,14 @@ async function loadRepos() {
 // Fetch podcast artwork via iTunes API
 async function loadPodcastArtwork() {
   const podcasts = [
-    { id: 'art-jre',   query: 'joe rogan experience',  fallback: '🎙️' },
-    { id: 'art-tim',   query: 'tim ferriss show',       fallback: '⚡' },
-    { id: 'art-jocko', query: 'jocko willink podcast',  fallback: '🪖' },
+    { id: 'art-jre',     query: 'joe rogan experience',        fallback: '🎙️' },
+    { id: 'art-tim',     query: 'tim ferriss show',            fallback: '⚡' },
+    { id: 'art-jocko',  query: 'jocko willink podcast',       fallback: '🪖' },
+    { id: 'art-mi',     query: 'master investor podcast',     fallback: '📈' },
+    { id: 'art-lex',    query: 'lex fridman podcast',         fallback: '🤖' },
+    { id: 'art-huberman', query: 'huberman lab podcast',      fallback: '🧠' },
+    { id: 'art-doac',   query: 'diary of a ceo steven bartlett', fallback: '📓' },
+    { id: 'art-foc',    query: 'fall of civilizations podcast', fallback: '🏛️' },
   ];
 
   for (const pod of podcasts) {
@@ -127,53 +132,101 @@ function extractThumb(content) {
 // Fallback emoji per tag
 const tagEmoji = { Travel: '✈️', AI: '🤖', TPM: '📊', Article: '📝' };
 
+function renderBlogItems(items) {
+  return items.map(item => {
+    const tag = getArticleTag(item.title);
+    const thumb = item.thumb;
+    const date = item.pubDate
+      ? new Date(item.pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+      : '';
+    const excerpt = (item.description || item.content || '')
+      .replace(/<[^>]+>/g, '').replace(/&[^;]+;/g, ' ').trim().slice(0, 150);
+    const wordCount = (item.content || '').replace(/<[^>]+>/g, '').split(/\s+/).length;
+    const readTime = `${Math.max(1, Math.round(wordCount / 200))} min read`;
+    const thumbHtml = thumb
+      ? `<div class="blog-card-thumb"><img src="${thumb}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'blog-thumb-fallback\\'>${tagEmoji[tag]}</div>'"></div>`
+      : `<div class="blog-card-thumb"><div class="blog-thumb-fallback">${tagEmoji[tag]}</div></div>`;
+    return `
+      <a href="${item.link}" target="_blank" class="blog-card">
+        ${thumbHtml}
+        <div class="blog-card-body">
+          <div class="blog-card-tag-row">
+            <span class="blog-card-tag">${tag}</span>
+            <span class="blog-card-readtime">⏱ ${readTime}</span>
+          </div>
+          <div class="blog-card-title">${item.title}</div>
+          <div class="blog-card-excerpt">${excerpt}</div>
+          <div class="blog-card-meta">
+            <span>${date}</span>
+            <span class="blog-card-read">Read on Medium →</span>
+          </div>
+        </div>
+      </a>`;
+  }).join('');
+}
+
 async function loadBlog() {
   const grid = document.getElementById('blog-grid');
+  const MEDIUM_URL = 'https://medium.com/feed/@goyalsandeep2k';
+  let items = null;
+
+  // Strategy 1: rss2json.com
   try {
-    const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fmedium.com%2Ffeed%2F%40goyalsandeep2k&count=3');
+    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(MEDIUM_URL)}&count=3`);
     const data = await res.json();
-    if (data.status !== 'ok' || !data.items?.length) throw new Error('No items');
+    if (data.status === 'ok' && data.items?.length) {
+      items = data.items.slice(0, 3).map(i => ({
+        title: i.title, link: i.link, pubDate: i.pubDate,
+        thumb: i.thumbnail || extractThumb(i.content || ''),
+        content: i.content || '', description: i.description || ''
+      }));
+    }
+  } catch (_) {}
 
-    grid.innerHTML = data.items.slice(0, 3).map(item => {
-      const tag = getArticleTag(item.title);
-      const thumb = item.thumbnail || extractThumb(item.content || '');
-      const date = new Date(item.pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  // Strategy 2: allorigins CORS proxy → parse RSS XML directly
+  if (!items) {
+    try {
+      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(MEDIUM_URL)}`);
+      const data = await res.json();
+      if (data.contents) {
+        const xml = new DOMParser().parseFromString(data.contents, 'text/xml');
+        const nodes = [...xml.querySelectorAll('item')].slice(0, 3);
+        if (nodes.length) {
+          items = nodes.map(el => {
+            const encoded = el.getElementsByTagNameNS(
+              'http://purl.org/rss/1.0/modules/content/', 'encoded'
+            )[0]?.textContent || '';
+            // <link> in RSS is a text node sibling, not element content
+            const linkEl = el.querySelector('link');
+            const link = linkEl?.nextSibling?.nodeValue?.trim()
+              || linkEl?.textContent?.trim()
+              || el.querySelector('guid')?.textContent?.trim() || '';
+            return {
+              title: el.querySelector('title')?.textContent || '',
+              link, pubDate: el.querySelector('pubDate')?.textContent || '',
+              thumb: extractThumb(encoded),
+              content: encoded, description: ''
+            };
+          });
+        }
+      }
+    } catch (_) {}
+  }
 
-      // Strip HTML for excerpt
-      const excerpt = (item.description || item.content || '')
-        .replace(/<[^>]+>/g, '')
-        .replace(/&[^;]+;/g, ' ')
-        .trim()
-        .slice(0, 150);
-
-      // Estimate reading time from content word count
-      const wordCount = (item.content || '').replace(/<[^>]+>/g, '').split(/\s+/).length;
-      const readMins = Math.max(1, Math.round(wordCount / 200));
-      const readTime = `${readMins} min read`;
-
-      const thumbHtml = thumb
-        ? `<div class="blog-card-thumb"><img src="${thumb}" alt="${item.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'blog-thumb-fallback\\'>${tagEmoji[tag]}</div>'"></div>`
-        : `<div class="blog-card-thumb"><div class="blog-thumb-fallback">${tagEmoji[tag]}</div></div>`;
-
-      return `
-        <a href="${item.link}" target="_blank" class="blog-card">
-          ${thumbHtml}
-          <div class="blog-card-body">
-            <div class="blog-card-tag-row">
-              <span class="blog-card-tag">${tag}</span>
-              <span class="blog-card-readtime">⏱ ${readTime}</span>
-            </div>
-            <div class="blog-card-title">${item.title}</div>
-            <div class="blog-card-excerpt">${excerpt}</div>
-            <div class="blog-card-meta">
-              <span>${date}</span>
-              <span class="blog-card-read">Read on Medium</span>
-            </div>
-          </div>
-        </a>`;
-    }).join('');
-  } catch (e) {
-    grid.innerHTML = `<p style="color:var(--text-muted);font-size:14px;padding:16px 0">Could not load posts — <a href="https://medium.com/@goyalsandeep2k" target="_blank">view on Medium directly</a>.</p>`;
+  if (items) {
+    grid.innerHTML = renderBlogItems(items);
+  } else {
+    // Styled fallback — no ugly error text
+    grid.innerHTML = `
+      <a href="https://medium.com/@goyalsandeep2k" target="_blank" class="blog-card blog-fallback-card" style="grid-column:1/-1;max-width:400px;margin:0 auto">
+        <div class="blog-card-thumb"><div class="blog-thumb-fallback" style="font-size:48px">✍️</div></div>
+        <div class="blog-card-body">
+          <div class="blog-card-tag-row"><span class="blog-card-tag">Medium</span></div>
+          <div class="blog-card-title">Read my latest articles on Medium</div>
+          <div class="blog-card-excerpt">AI, Program Management, tech leadership, and lessons learned building at scale.</div>
+          <div class="blog-card-meta"><span class="blog-card-read">View all posts →</span></div>
+        </div>
+      </a>`;
   }
 }
 
