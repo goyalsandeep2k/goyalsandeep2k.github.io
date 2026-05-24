@@ -106,6 +106,79 @@ code {
   margin-left: auto;
 }
 
+.nav-visitor {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(59,130,246,0.1);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.nav-visitor .vis-dot {
+  width: 7px; height: 7px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* Skill card install row */
+.skill-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.skill-dl-count {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.skill-dl-count .dl-num {
+  color: var(--accent);
+  font-weight: 700;
+}
+.skill-install-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.35);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.skill-install-btn:hover {
+  background: rgba(59,130,246,0.22);
+  border-color: var(--accent);
+}
+.skill-install-btn.downloading {
+  color: #10b981;
+  border-color: rgba(16,185,129,0.4);
+  background: rgba(16,185,129,0.1);
+}
+
 /* ===== HERO ===== */
 .hero {
   min-height: 100vh;

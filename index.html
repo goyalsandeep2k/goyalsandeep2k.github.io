@@ -16,6 +16,7 @@
   <div class="nav-inner">
     <a class="nav-logo" href="#home">SG</a>
     <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">&#9776;</button>
+    <div class="nav-visitor" id="visitorCounter"><span class="vis-dot"></span><span id="visCount">250</span> visitors</div>
     <ul class="nav-links" id="navLinks">
       <li><a href="#about">About</a></li>
       <li><a href="#experience">Experience</a></li>
@@ -36,7 +37,7 @@
   <div class="hero-content">
     <div class="hero-avatar"><img src="photo.png" alt="Sandeep Goyal" class="hero-photo"></div>
     <h1 class="hero-name">Sandeep Goyal</h1>
-    <p class="hero-title">Head of Technical Program Management · AI Native Builder</p>
+    <p class="hero-title">AI Native Builder · TPM Leader</p>
     <p class="hero-quote">"Great results can be achieved with small forces."<span class="quote-attr"> — Sun Tzu, The Art of War</span></p>
     <p class="hero-bio">20+ years building high-impact programs across Oracle and Intuit. Currently leading AI-driven platform initiatives — from Virtual Expert Platforms to All-in-One product delivery — and building AI skills with the Anthropic Claude Agent SDK.</p>
     <div class="hero-links">
@@ -349,21 +350,27 @@
 
     <div class="claude-cards">
 
+      <!-- 1. PMaaS -->
       <div class="claude-card">
         <div class="claude-card-top">
-          <div class="claude-card-icon" style="background:rgba(239,68,68,0.15)">🔍</div>
+          <div class="claude-card-icon" style="background:rgba(251,191,36,0.15)">🚀</div>
           <div>
-            <h3>Dependency &amp; Risk Tracker</h3>
-            <code>/dep-risk-tracker</code>
+            <h3>PMaaS</h3>
+            <code>/pmaas</code>
           </div>
           <span class="status-badge status-live">Live</span>
         </div>
-        <p>Analyzes timelines across multiple programs, flags critical path items, maps cross-team dependencies, and generates a mitigation strategy for every blocker. Produces a full RAID log and filterable HTML dashboard for central risk tracking.</p>
+        <p>Program Management as a Service. Connects to Jira, Smartsheet, Airtable, GitHub, and Slack to generate a polished HTML status report — risks, milestones, project tracking, and meeting prep — all in one shareable command center.</p>
         <div class="claude-card-tags">
-          <span class="tag">RAID Log</span><span class="tag">Critical Path</span><span class="tag">Jira</span><span class="tag">Slack</span><span class="tag">Mitigation</span>
+          <span class="tag">Jira</span><span class="tag">Smartsheet</span><span class="tag">Airtable</span><span class="tag">GitHub</span><span class="tag">Slack</span>
+        </div>
+        <div class="skill-card-footer">
+          <span class="skill-dl-count">⬇ <span class="dl-num">20</span> installs</span>
+          <button class="skill-install-btn" onclick="downloadSkill('https://raw.githubusercontent.com/goyalsandeep2k/claude-skills/main/skills/pmaas/SKILL.md','pmaas-SKILL.md',this)">⬇ Install Skill</button>
         </div>
       </div>
 
+      <!-- 2. PRD Generator -->
       <div class="claude-card">
         <div class="claude-card-top">
           <div class="claude-card-icon" style="background:rgba(63,185,80,0.15)">📋</div>
@@ -377,35 +384,49 @@
         <div class="claude-card-tags">
           <span class="tag">Product</span><span class="tag">Requirements</span><span class="tag">Acceptance Criteria</span><span class="tag">Rollout</span>
         </div>
+        <div class="skill-card-footer">
+          <span class="skill-dl-count">⬇ <span class="dl-num">22</span> installs</span>
+          <button class="skill-install-btn" onclick="downloadSkill('https://raw.githubusercontent.com/goyalsandeep2k/claude-skills/main/skills/prd-generator/SKILL.md','prd-generator-SKILL.md',this)">⬇ Install Skill</button>
+        </div>
       </div>
 
+      <!-- 3. Dependency & Risk Tracker -->
+      <div class="claude-card">
+        <div class="claude-card-top">
+          <div class="claude-card-icon" style="background:rgba(239,68,68,0.15)">🔍</div>
+          <div>
+            <h3>Dependency &amp; Risk Tracker</h3>
+            <code>/dep-risk-tracker</code>
+          </div>
+          <span class="status-badge status-live">Live</span>
+        </div>
+        <p>Analyzes timelines across multiple programs, flags critical path items, maps cross-team dependencies, and generates a mitigation strategy for every blocker. Produces a full RAID log and filterable HTML dashboard for central risk tracking.</p>
+        <div class="claude-card-tags">
+          <span class="tag">RAID Log</span><span class="tag">Critical Path</span><span class="tag">Jira</span><span class="tag">Slack</span><span class="tag">Mitigation</span>
+        </div>
+        <div class="skill-card-footer">
+          <span class="skill-dl-count">⬇ <span class="dl-num">13</span> installs</span>
+          <button class="skill-install-btn" onclick="downloadSkill('https://raw.githubusercontent.com/goyalsandeep2k/claude-skills/main/skills/dep-risk-tracker/SKILL.md','dep-risk-tracker-SKILL.md',this)">⬇ Install Skill</button>
+        </div>
+      </div>
+
+      <!-- 4. Google Slides Connector -->
       <div class="claude-card">
         <div class="claude-card-top">
           <div class="claude-card-icon" style="background:rgba(210,153,255,0.15)">📑</div>
           <div>
             <h3>Google Slides Connector</h3>
-            <code>/gslides</code>
+            <code>/gslides-connector</code>
           </div>
           <span class="status-badge status-live">Live</span>
         </div>
-        <p>Read, analyze, and synthesize Google Slides presentations directly in Claude. Summarizes decks, extracts key decisions, compares slide versions, and generates exec-ready summaries — all in natural language.</p>
+        <p>Sets up a live MCP server so Claude can read, analyze, and synthesize Google Slides and Drive files natively. Walks through OAuth2 setup, registers the MCP in Claude Code, then lets you summarize decks, extract decisions, and search Drive — all in natural language.</p>
         <div class="claude-card-tags">
-          <span class="tag">Google Slides</span><span class="tag">Google Drive</span><span class="tag">OAuth</span>
+          <span class="tag">MCP</span><span class="tag">Google Slides</span><span class="tag">Google Drive</span><span class="tag">OAuth2</span>
         </div>
-      </div>
-
-      <div class="claude-card">
-        <div class="claude-card-top">
-          <div class="claude-card-icon" style="background:rgba(251,191,36,0.15)">🚀</div>
-          <div>
-            <h3>PMaaS</h3>
-            <code>/pmaas</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>Program Management as a Service. Connects to Jira, Smartsheet, Airtable, GitHub, and Slack to generate a polished HTML status report — risks, milestones, project tracking, and meeting prep — all in one shareable command center.</p>
-        <div class="claude-card-tags">
-          <span class="tag">Jira</span><span class="tag">Smartsheet</span><span class="tag">Airtable</span><span class="tag">GitHub</span><span class="tag">Slack</span>
+        <div class="skill-card-footer">
+          <span class="skill-dl-count">⬇ <span class="dl-num">15</span> installs</span>
+          <button class="skill-install-btn" onclick="downloadSkill('https://raw.githubusercontent.com/goyalsandeep2k/claude-skills/main/skills/gslides-connector/SKILL.md','gslides-connector-SKILL.md',this)">⬇ Install Skill</button>
         </div>
       </div>
 

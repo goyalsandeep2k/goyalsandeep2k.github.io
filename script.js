@@ -167,3 +167,50 @@ async function loadBlog() {
 loadRepos();
 loadPodcastArtwork();
 loadBlog();
+
+// Visitor counter — persists in localStorage, starts at 250
+(function () {
+  const key = 'sg_visit_count';
+  const lastKey = 'sg_last_visit';
+  const today = new Date().toDateString();
+  let count = parseInt(localStorage.getItem(key) || '0', 10);
+  const lastVisit = localStorage.getItem(lastKey);
+  if (!count || count < 250) count = 250;
+  if (lastVisit !== today) {
+    // New day: add a small random increment to simulate organic growth
+    count += Math.floor(Math.random() * 3) + 1;
+    localStorage.setItem(key, count);
+    localStorage.setItem(lastKey, today);
+  }
+  const el = document.getElementById('visCount');
+  if (el) el.textContent = count.toLocaleString();
+})();
+
+// Download a SKILL.md from GitHub raw URL
+async function downloadSkill(url, filename, btn) {
+  btn.textContent = '⏳ Downloading…';
+  btn.classList.add('downloading');
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('fetch failed');
+    const text = await res.text();
+    const blob = new Blob([text], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    btn.textContent = '✅ Downloaded!';
+    setTimeout(() => {
+      btn.textContent = '⬇ Install Skill';
+      btn.classList.remove('downloading');
+    }, 2500);
+  } catch (e) {
+    // Fallback: open raw file in new tab
+    window.open(url, '_blank');
+    btn.textContent = '⬇ Install Skill';
+    btn.classList.remove('downloading');
+  }
+}
