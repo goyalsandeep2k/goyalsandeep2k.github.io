@@ -130,16 +130,26 @@ const tagEmoji = { Travel: '✈️', AI: '🤖', TPM: '📊', Article: '📝' };
 async function loadBlog() {
   const grid = document.getElementById('blog-grid');
   try {
-    const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fmedium.com%2Ffeed%2F%40goyalsandeep2k&count=4');
+    const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fmedium.com%2Ffeed%2F%40goyalsandeep2k&count=3');
     const data = await res.json();
     if (data.status !== 'ok' || !data.items?.length) throw new Error('No items');
 
-    grid.innerHTML = data.items.slice(0, 4).map(item => {
+    grid.innerHTML = data.items.slice(0, 3).map(item => {
       const tag = getArticleTag(item.title);
       const thumb = item.thumbnail || extractThumb(item.content || '');
       const date = new Date(item.pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-      // Strip HTML from description
-      const excerpt = (item.description || '').replace(/<[^>]+>/g, '').replace(/&[^;]+;/g, ' ').trim().slice(0, 160);
+
+      // Strip HTML for excerpt
+      const excerpt = (item.description || item.content || '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&[^;]+;/g, ' ')
+        .trim()
+        .slice(0, 150);
+
+      // Estimate reading time from content word count
+      const wordCount = (item.content || '').replace(/<[^>]+>/g, '').split(/\s+/).length;
+      const readMins = Math.max(1, Math.round(wordCount / 200));
+      const readTime = `${readMins} min read`;
 
       const thumbHtml = thumb
         ? `<div class="blog-card-thumb"><img src="${thumb}" alt="${item.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'blog-thumb-fallback\\'>${tagEmoji[tag]}</div>'"></div>`
@@ -149,12 +159,15 @@ async function loadBlog() {
         <a href="${item.link}" target="_blank" class="blog-card">
           ${thumbHtml}
           <div class="blog-card-body">
-            <div class="blog-card-tag">${tag}</div>
+            <div class="blog-card-tag-row">
+              <span class="blog-card-tag">${tag}</span>
+              <span class="blog-card-readtime">⏱ ${readTime}</span>
+            </div>
             <div class="blog-card-title">${item.title}</div>
             <div class="blog-card-excerpt">${excerpt}</div>
             <div class="blog-card-meta">
               <span>${date}</span>
-              <span class="blog-card-read">Read on Medium →</span>
+              <span class="blog-card-read">Read on Medium</span>
             </div>
           </div>
         </a>`;
