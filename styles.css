@@ -760,6 +760,9 @@ code {
 .achieve-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
 .achieve-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
 .achievement-item p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+.transformation-photo-wrap { margin: 14px 0 20px; border-radius: 14px; overflow: hidden; border: 1px solid var(--border-strong); }
+.transformation-photo { width: 100%; display: block; max-height: 340px; object-fit: cover; object-position: top; transition: transform .35s ease; }
+.transformation-photo:hover { transform: scale(1.02); }
 
 .bucket-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
 .bucket-list li {
