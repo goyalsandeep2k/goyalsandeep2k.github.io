@@ -415,6 +415,19 @@ code {
   white-space: nowrap; flex-shrink: 0;
 }
 .timeline-desc { font-size: 15px; color: var(--text-muted); line-height: 1.65; margin-bottom: 14px; }
+.timeline-bullets {
+  list-style: none; padding: 0; margin: 0 0 14px;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.timeline-bullets li {
+  font-size: 14px; color: var(--text-muted); line-height: 1.6;
+  padding-left: 18px; position: relative;
+}
+.timeline-bullets li::before {
+  content: '▸';
+  position: absolute; left: 0; color: var(--accent);
+  font-size: 11px; top: 4px;
+}
 .timeline-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* ===== EXPERIENCE LOGO STRIP ===== */
@@ -613,6 +626,28 @@ code {
 }
 .status-live { background: var(--accent2-light); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
 .status-beta { background: var(--accent-light); color: #93c5fd; border: 1px solid var(--accent-mid); }
+
+/* ===== SKILLS MARKETPLACE CTA ===== */
+.skills-marketplace-cta {
+  display: flex; align-items: center; justify-content: space-between;
+  max-width: 780px; margin: 0 auto 28px; padding: 18px 22px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(59,130,246,.12), rgba(139,92,246,.08));
+  border: 1px solid rgba(59,130,246,.28);
+  text-decoration: none; color: var(--text);
+  transition: border-color .2s, background .2s, transform .2s;
+}
+.skills-marketplace-cta:hover {
+  border-color: rgba(59,130,246,.55);
+  background: linear-gradient(135deg, rgba(59,130,246,.18), rgba(139,92,246,.12));
+  transform: translateY(-1px);
+  color: var(--text);
+}
+.skills-mkt-left { display: flex; align-items: center; gap: 14px; }
+.skills-mkt-icon { font-size: 26px; }
+.skills-mkt-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.skills-mkt-sub { font-size: 12px; color: var(--text-muted); }
+.skills-mkt-arrow { font-size: 20px; color: var(--accent); font-weight: 600; }
 
 .claude-explainer {
   background: rgba(255,255,255,0.04);
