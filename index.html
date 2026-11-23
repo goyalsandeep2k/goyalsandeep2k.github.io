@@ -1,1388 +1,789 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sandeep Goyal — TPM Leader & AI Builder</title>
-  <link rel="stylesheet" href="styles.css"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Chem Bonding Drills</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: a topic board that swaps in place for a single-question drill card. */
+:root{
+  --bg:#f6f7f4; --panel:#ffffff; --panel-2:#eef0ea; --line:#d9ddd2;
+  --fg:#1d2420; --muted:#5f6b63; --accent:#0f6b5c; --accent-soft:#dcefe9;
+  --good:#1a7a46; --good-soft:#dcf0e2; --bad:#a52f2a; --bad-soft:#f8e2df;
+  --warn:#8a5a10; --warn-soft:#fbeed3;
+  --d1:#2f7d6a; --d2:#9a6a12; --d3:#8d3a63; --on-accent:#ffffff;
+  --font-h:'Sora',system-ui,sans-serif; --font-b:'Inter',system-ui,sans-serif; --font-m:'JetBrains Mono',ui-monospace,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#13181a; --panel:#1b2225; --panel-2:#222b2e; --line:#2f3a3e;
+  --fg:#e8eeeb; --muted:#9aaaa3; --accent:#5ad0b5; --accent-soft:#17352f;
+  --good:#58cf8d; --good-soft:#143025; --bad:#f08b83; --bad-soft:#361b19;
+  --warn:#e5b557; --warn-soft:#332714;
+  --d1:#6ed3b9; --d2:#e0b35e; --d3:#dd8fb6; --on-accent:#07201c;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#13181a; --panel:#1b2225; --panel-2:#222b2e; --line:#2f3a3e;
+  --fg:#e8eeeb; --muted:#9aaaa3; --accent:#5ad0b5; --accent-soft:#17352f;
+  --good:#58cf8d; --good-soft:#143025; --bad:#f08b83; --bad-soft:#361b19;
+  --warn:#e5b557; --warn-soft:#332714;
+  --d1:#6ed3b9; --d2:#e0b35e; --d3:#dd8fb6; --on-accent:#07201c;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-b);line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+h1,h2,h3{font-family:var(--font-h);text-wrap:balance;margin:0}
+button{font:inherit;cursor:pointer}
+.mono{font-family:var(--font-m)}
+
+/* header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--bg);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.hrow{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--font-h);font-weight:700;font-size:1.05rem;letter-spacing:-.01em;margin-right:auto}
+.brand span{display:block;font-family:var(--font-b);font-weight:400;font-size:.76rem;color:var(--muted);letter-spacing:.02em}
+.ghost{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:6px 12px;font-size:.8rem;font-weight:500}
+.ghost:hover{color:var(--fg);border-color:var(--accent)}
+
+/* stat strip */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:18px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.stat b{display:block;font-family:var(--font-h);font-size:1.35rem;font-variant-numeric:tabular-nums;line-height:1.15}
+.stat small{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.07em}
+
+/* topic board */
+.sect{margin-top:28px}
+.sect > h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin-bottom:10px}
+.topics{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.topic{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;transition:border-color .15s,transform .15s}
+.topic:hover{border-color:var(--accent);transform:translateY(-1px)}
+.topic .tt{font-family:var(--font-h);font-weight:600;font-size:1rem}
+.topic .td{color:var(--muted);font-size:.82rem;min-height:2.4em}
+.bar{height:5px;border-radius:999px;background:var(--panel-2);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.meta{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.mixed{background:linear-gradient(135deg,var(--accent-soft),var(--panel));border-color:var(--accent)}
+
+/* controls */
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:6px 13px;font-size:.82rem;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+
+/* quiz card */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:18px}
+.qhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tag{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--panel-2);color:var(--muted)}
+.tag.d1{color:var(--d1)}.tag.d2{color:var(--d2)}.tag.d3{color:var(--d3)}
+.qnum{margin-left:auto;font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.qtext{font-family:var(--font-h);font-size:1.17rem;font-weight:600;white-space:pre-wrap;line-height:1.4}
+.qtext .eq{display:block;font-family:var(--font-m);font-size:1.02rem;font-weight:500;margin-top:10px;padding:10px 12px;background:var(--panel-2);border-radius:10px;overflow-x:auto;white-space:pre}
+.hintline{color:var(--muted);font-size:.84rem;margin-top:8px}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.opt{display:flex;align-items:flex-start;gap:10px;text-align:left;width:100%;background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--fg);transition:border-color .12s,background .12s}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:disabled{cursor:default}
+.opt .box{flex:none;width:21px;height:21px;border:1.5px solid var(--line);border-radius:50%;display:grid;place-items:center;font-size:.7rem;font-weight:700;margin-top:1px}
+.opt.multi .box{border-radius:6px}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt[aria-pressed="true"] .box{border-color:var(--accent);background:var(--accent);color:var(--panel)}
+.opt.correct{border-color:var(--good);background:var(--good-soft)}
+.opt.correct .box{border-color:var(--good);background:var(--good);color:var(--panel)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .box{border-color:var(--bad);background:var(--bad);color:var(--panel)}
+.opt .txt{min-width:0;word-break:break-word}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+.primary{background:var(--accent);color:var(--on-accent);border:none;border-radius:11px;padding:11px 22px;font-weight:600}
+.primary:disabled{opacity:.45;cursor:default}
+.tries{font-size:.82rem;color:var(--muted);margin-left:auto;font-variant-numeric:tabular-nums}
+.dots{display:inline-flex;gap:4px;vertical-align:-2px;margin-left:6px}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line)}
+.dots i.used{background:var(--bad);border-color:var(--bad)}
+.feedback{margin-top:14px;border-radius:12px;padding:12px 14px;font-size:.92rem;border:1px solid}
+.feedback.ok{background:var(--good-soft);border-color:var(--good)}
+.feedback.no{background:var(--warn-soft);border-color:var(--warn)}
+.feedback.out{background:var(--bad-soft);border-color:var(--bad)}
+.feedback b{font-family:var(--font-h);display:block;margin-bottom:4px}
+.feedback .why{color:var(--fg);opacity:.9}
+.srcline{margin-top:10px;font-size:.74rem;color:var(--muted)}
+.progwrap{margin-top:16px}
+.progwrap .bar{height:6px}
+.empty{color:var(--muted);text-align:center;padding:34px 10px}
+footer{margin-top:34px;color:var(--muted);font-size:.76rem;text-align:center}
+@media (max-width:520px){.stats{grid-template-columns:repeat(2,1fr)}.qtext{font-size:1.07rem}}
+</style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav id="navbar">
-  <div class="nav-inner">
-    <a class="nav-logo" href="#home">SG</a>
-    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">&#9776;</button>
-    <div class="nav-visitor" id="visitorCounter"><span class="vis-dot"></span><span id="visCount">250</span> visitors</div>
-    <ul class="nav-links" id="navLinks">
-      <li><a href="#about">About</a></li>
-      <li><a href="#experience">Experience</a></li>
-      <li><a href="#projects">Projects</a></li>
-      <li><a href="#skills">Skills</a></li>
-      <li><a href="#claude-skills">Claude Skills</a></li>
-      <li><a href="#repos">Repos</a></li>
-      <li><a href="#education">Education</a></li>
-      <li><a href="#personal">Personal</a></li>
-      <li><a href="#blog">Blog</a></li>
-      <li><a href="#books">Books</a></li>
-    </ul>
-  </div>
-</nav>
+<header><div class="hrow">
+  <div class="brand">Chem Bonding Drills<span id="sub">Bonding, VSEPR, reactions &amp; equations</span></div>
+  <button class="ghost" id="themeBtn" type="button">Theme</button>
+  <button class="ghost" id="resetBtn" type="button">Reset progress</button>
+</div></header>
 
-<!-- HERO -->
-<section id="home" class="hero">
-  <div class="hero-content">
-    <div class="hero-avatar"><img src="photo.png" alt="Sandeep Goyal" class="hero-photo"></div>
-    <h1 class="hero-name">Sandeep Goyal</h1>
-    <p class="hero-title">AI Native Builder · TPM Leader</p>
-    <p class="hero-quote">"Great results can be achieved with small forces."<span class="quote-attr"> — Sun Tzu, The Art of War</span></p>
-    <p class="hero-bio">20+ years building high-impact programs across Oracle, Intuit, and Kaseya. Currently leading program management for Cyber Resilience, IT Service Management, Cybersecurity, AI, and new-product go-to-market at Kaseya — and building AI skills with the Anthropic Claude Agent SDK.</p>
-    <div class="hero-links">
-      <a href="https://linkedin.com/in/sandgoya" target="_blank" class="btn btn-primary">LinkedIn</a>
-      <a href="https://github.com/goyalsandeep2k" target="_blank" class="btn btn-secondary">GitHub</a>
-      <a href="SandeepGoyal_Resume.pdf" target="_blank" class="btn btn-resume">📄 Professional Resume</a>
-      <a href="https://goyalsandeep2k.github.io/claude-skills-market/" target="_blank" class="btn btn-accent">Claude Marketplace</a>
+<div class="wrap">
+  <div id="board">
+    <div class="stats">
+      <div class="stat"><b id="sTot">0</b><small>Answered</small></div>
+      <div class="stat"><b id="sFirst">0%</b><small>First try</small></div>
+      <div class="stat"><b id="sStreak">0</b><small>Streak</small></div>
+      <div class="stat"><b id="sBank">0</b><small>In the bank</small></div>
     </div>
-    <div class="hero-stats">
-      <div class="hero-stat"><span class="stat-num">20+</span><span class="stat-label">Years Experience</span></div>
-      <div class="hero-stat"><span class="stat-num">5</span><span class="stat-label">Certifications</span></div>
-      <div class="hero-stat"><span class="stat-num" id="hero-skills-count">14</span><span class="stat-label">Claude Skills Built</span></div>
-      <div class="hero-stat"><span class="stat-num">∞</span><span class="stat-label">Hours Saved via AI</span></div>
+    <div class="sect">
+      <h2>Difficulty</h2>
+      <div class="chips" id="diffChips"></div>
+    </div>
+    <div class="sect">
+      <h2>Pick a topic</h2>
+      <div class="topics" id="topicGrid"></div>
     </div>
   </div>
-  <div class="hero-scroll-indicator">
-    <a href="#about">↓</a>
-  </div>
-</section>
-
-<!-- ABOUT -->
-<section id="about" class="section">
-  <div class="container">
-    <h2 class="section-title">About</h2>
-    <div class="about-grid">
-      <div class="about-text">
-        <p>I'm an <strong>AI Native Builder and TPM Leader &amp; Coach</strong> with over 20 years of experience spanning startup, enterprise, and cloud-scale engineering organizations. My career spans Tavant → Oracle India → Oracle USA → Intuit → Kaseya, where I currently serve as Director of Technical Program Management across Cyber Resilience, IT Service Management, Cybersecurity, AI, and new-product go-to-market.</p>
-        <p>My focus is at the intersection of <strong>program execution</strong>, <strong>AI integration</strong>, and <strong>product delivery</strong> — running complex, multi-team programs — most recently at Kaseya, and previously across TurboTax, Mint, and QuickBooks at Intuit — while pioneering the use of Claude AI agents to automate and accelerate how my team works.</p>
-        <p>Beyond the org chart, I'm a health transformation advocate (265 → 190 lbs), a self-directed investor, and a lifelong learner powered by podcasts, books, and a bucket list that includes Half Dome and skydiving.</p>
-      </div>
-      <div class="about-cards">
-        <div class="about-card">
-          <div class="about-card-icon">🏢</div>
-          <div>
-            <div class="about-card-title">Current Role</div>
-            <div class="about-card-desc">Director, TPM, Kaseya · Aug 2026–Present</div>
-          </div>
-        </div>
-        <div class="about-card">
-          <div class="about-card-icon">📍</div>
-          <div>
-            <div class="about-card-title">Location</div>
-            <div class="about-card-desc">San Francisco Bay Area · USA</div>
-          </div>
-        </div>
-        <div class="about-card">
-          <div class="about-card-icon">🤖</div>
-          <div>
-            <div class="about-card-title">Focus Area</div>
-            <div class="about-card-desc">AI-Native Program Management &amp; Claude Agent SDK</div>
-          </div>
-        </div>
-        <div class="about-card">
-          <div class="about-card-icon">🎓</div>
-          <div>
-            <div class="about-card-title">Education</div>
-            <div class="about-card-desc">B.Tech NIT Kurukshetra · PGDBM NMIMS</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- EXPERIENCE -->
-<section id="experience" class="section section-alt">
-  <div class="container">
-    <h2 class="section-title">Experience</h2>
-    <div class="timeline">
-
-      <div class="timeline-item">
-        <div class="timeline-dot"></div>
-        <div class="timeline-content">
-          <div class="timeline-header">
-            <div>
-              <h3 class="timeline-role">Director — Technical Program Management</h3>
-              <div class="timeline-company"><img src="https://logo.clearbit.com/kaseya.com" class="co-logo" alt="" onerror="this.style.display='none'">Kaseya · Sunnyvale, CA (Hybrid)</div>
-            </div>
-            <div class="timeline-date">Aug 2026 – Present</div>
-          </div>
-          <ul class="timeline-bullets">
-            <li>Lead program management for Cyber Security, Cyber Resilience, IT Service Management, AI, and new-product GTM; develop TPM talent and run monthly business reviews with the GM on ARR, churn, upsell/cross-sell, and NPS</li>
-            <li>Drive delivery against a $4M+ Q4 2026 new ARR (NARR) forecast for Cyber Security and Cyber Resilience within a ~$100M ARR product suite; track the funnel in Salesforce from MQL through opportunity</li>
-            <li>Stood up an AI-based Command Center as the single source of truth (SSOT) for program information within one quarter</li>
-            <li>Embedded INKY email security trials into other Kaseya suite products — 10% trial-to-paid conversion and higher attach rates across 15% of products</li>
-            <li>Partner with Product Marketing, Demand Generation, and Account Managers on trial and email campaigns, cross-sell/upsell, and tiered licensing to drive Net Retention Rate; lead BCDR and platform consolidation, including migrating legacy email security into a unified architecture</li>
-          </ul>
-          <div class="timeline-tags">
-            <span class="tag">Cyber Resilience</span>
-            <span class="tag">ITSM</span>
-            <span class="tag">Cybersecurity</span>
-            <span class="tag">AI</span>
-            <span class="tag">GTM</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="timeline-item">
-        <div class="timeline-dot"></div>
-        <div class="timeline-content">
-          <div class="timeline-header">
-            <div>
-              <h3 class="timeline-role">Head of Technical Program Management</h3>
-              <div class="timeline-company"><img src="https://logo.clearbit.com/intuit.com" class="co-logo" alt="" onerror="this.style.display='none'">Intuit · USA</div>
-            </div>
-            <div class="timeline-date">2021 – Aug 2026</div>
-          </div>
-          <ul class="timeline-bullets">
-            <li>Led Lead2Cash and Intuit's AI-based seller productivity initiative under SVP sponsorship, directing 10 TPMs across five pillars — recaptured 24,000+ seller hours/week and influenced $200M+ in revenue pipeline</li>
-            <li>Built an AI-based Command Center (VEP PMO Claude Skill ecosystem) as the single source of truth, updated directly from Slack, Teams, Confluence, and Jira — cut PM reporting from ~6 hrs/week to under 15 minutes</li>
-            <li>Spearheaded the MidMarket Agentic AI Workspace for 2,400 AEs/BDRs (cold leads cut 50%) and improved TurboTax Live expert matching 25% via AI routing, driving a 15% revenue increase in peak tax season</li>
-            <li>Drove GenAI code assistant rollout across 2,000+ engineers in all 8 business units — 50% development velocity lift, 50% higher developer satisfaction; designed the GenAI Workforce of the Future program for 5,000+ employees with Bain Consulting</li>
-            <li>Orchestrated Intuit's first agentic workflows for tax preparation; created the strategy, roadmap, and operating rhythm for a 650-engineer Developer Experiences org (67% developer velocity increase) and delivered $7M in cost savings in two fiscal years</li>
-          </ul>
-          <div class="timeline-tags">
-            <span class="tag">AI Platform</span>
-            <span class="tag">VEP</span>
-            <span class="tag">AiO</span>
-            <span class="tag">QuickBooks</span>
-            <span class="tag">TurboTax</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="timeline-item">
-        <div class="timeline-dot"></div>
-        <div class="timeline-content">
-          <div class="timeline-header">
-            <div>
-              <h3 class="timeline-role">Director — Technical Program Management</h3>
-              <div class="timeline-company"><img src="https://logo.clearbit.com/oracle.com" class="co-logo" alt="" onerror="this.style.display='none'">Oracle · USA</div>
-            </div>
-            <div class="timeline-date">2018 – 2021</div>
-          </div>
-          <ul class="timeline-bullets">
-            <li>Directed Oracle Gen 2 Cloud (OCI) delivery across 6 program managers and 80+ engineers, owning end-to-end release management for compute, storage, and networking services</li>
-            <li>Led HIPAA and FedRAMP compliance programs — achieved Authority to Operate (ATO) milestones on schedule across US Government cloud regions</li>
-            <li>Led migration of Oracle clients from OPC Gen 1 to OCI Gen 2 — authored regional rollout playbooks deployed across 12+ global datacenters</li>
-            <li>Established pod/VM caching, pre-emptive cloning, and region-specific datacenter rollout strategies that reduced deployment time by 40%</li>
-            <li>Drove cross-functional alignment between infrastructure, security, networking, and product teams for major OCI quarterly releases</li>
-          </ul>
-          <div class="timeline-tags">
-            <span class="tag">OCI</span>
-            <span class="tag">Cloud Infra</span>
-            <span class="tag">FedRAMP</span>
-            <span class="tag">HIPAA</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="timeline-item">
-        <div class="timeline-dot"></div>
-        <div class="timeline-content">
-          <div class="timeline-header">
-            <div>
-              <h3 class="timeline-role">Senior Manager — Program Management</h3>
-              <div class="timeline-company"><img src="https://logo.clearbit.com/oracle.com" class="co-logo" alt="" onerror="this.style.display='none'">Oracle · USA</div>
-            </div>
-            <div class="timeline-date">2014 – 2018</div>
-          </div>
-          <ul class="timeline-bullets">
-            <li>Managed bi-weekly release cycles for Oracle Cloud SaaS and PaaS across 6+ major product lines with zero missed customer-committed release windows</li>
-            <li>Transitioned a 86-engineer org from Waterfall to Agile/Scrum — reduced time-to-release and improved engineering velocity by 35%</li>
-            <li>Implemented 100% Continuous Integration model using Perforce, Jenkins, and Artifactory — cut build failures by 60% and eliminated manual deployment steps</li>
-            <li>Led two PMs through high-cadence SaaS release cycles; created standardized SDLC templates adopted org-wide</li>
-            <li>Executed region-specific Oracle Cloud datacenter rollouts across North America, EMEA, and APAC</li>
-          </ul>
-          <div class="timeline-tags">
-            <span class="tag">SaaS</span>
-            <span class="tag">PaaS</span>
-            <span class="tag">Release Mgmt</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="timeline-item">
-        <div class="timeline-dot"></div>
-        <div class="timeline-content">
-          <div class="timeline-header">
-            <div>
-              <h3 class="timeline-role">Software Development Manager</h3>
-              <div class="timeline-company"><img src="https://logo.clearbit.com/oracle.com" class="co-logo" alt="" onerror="this.style.display='none'">Oracle · India</div>
-            </div>
-            <div class="timeline-date">2011 – 2014</div>
-          </div>
-          <ul class="timeline-bullets">
-            <li>Managed a 5-engineer team delivering Install and Patching infrastructure across Oracle Database, Fusion Middleware, and enterprise product portfolio</li>
-            <li>Delivered Fusion Middleware 12c and Database 19c migration programs on time and under budget across 20+ enterprise customer environments</li>
-            <li>Transitioned team to agile delivery sprints — improved release predictability and reduced rework by 30%</li>
-            <li>Built and mentored engineering team; established peer code review practices and automated regression testing frameworks</li>
-          </ul>
-          <div class="timeline-tags">
-            <span class="tag">Engineering Mgmt</span>
-            <span class="tag">Fusion Middleware</span>
-            <span class="tag">Oracle DB</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="timeline-item">
-        <div class="timeline-dot"></div>
-        <div class="timeline-content">
-          <div class="timeline-header">
-            <div>
-              <h3 class="timeline-role">Individual Contributor — Software Engineering</h3>
-              <div class="timeline-company"><img src="https://logo.clearbit.com/oracle.com" class="co-logo" alt="" onerror="this.style.display='none'">Oracle · India</div>
-            </div>
-            <div class="timeline-date">2006 – 2011</div>
-          </div>
-          <ul class="timeline-bullets">
-            <li>Developed and shipped features across Oracle Database, Enterprise Manager Grid Control, and Fusion Applications</li>
-            <li>Core contributor to Oracle Enterprise Manager Grid Control — improved monitoring alerting, threshold management, and notification pipelines</li>
-            <li>Advanced from individual contributor to technical lead within 3 years; began managing cross-functional technical workstreams</li>
-            <li>Built deep expertise in database internals, middleware deployment, and enterprise software release lifecycles — the foundation for all future TPM work</li>
-          </ul>
-          <div class="timeline-tags">
-            <span class="tag">Oracle DB</span>
-            <span class="tag">Enterprise Manager</span>
-            <span class="tag">Fusion Apps</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="timeline-item">
-        <div class="timeline-dot"></div>
-        <div class="timeline-content">
-          <div class="timeline-header">
-            <div>
-              <h3 class="timeline-role">Software Developer</h3>
-              <div class="timeline-company"><img src="https://logo.clearbit.com/tavant.com" class="co-logo" alt="" onerror="this.style.display='none'">Tavant · India</div>
-            </div>
-            <div class="timeline-date">2005 – 2006</div>
-          </div>
-          <ul class="timeline-bullets">
-            <li>Designed and built authentication and login modules for enterprise clients using J2EE and Spring framework</li>
-            <li>Delivered production-quality code for mission-critical authentication workflows across multiple client deployments</li>
-            <li>First professional engineering role; laid the technical foundation after completing B.Tech in Computer Science from NIT Kurukshetra</li>
-          </ul>
-          <div class="timeline-tags">
-            <span class="tag">Software Dev</span>
-            <span class="tag">Auth Systems</span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Company Logo Strip -->
-    <div class="exp-logo-strip">
-      <span class="exp-logo-label">Companies I've built at</span>
-      <div class="exp-logos">
-        <div class="exp-logo-card">
-          <img src="https://logo.clearbit.com/kaseya.com" alt="Kaseya" class="exp-logo-img" onerror="this.style.display='none'">
-          <span class="exp-logo-name">Kaseya</span>
-          <span class="exp-logo-years">Aug 2026 – Present</span>
-        </div>
-        <div class="exp-logo-divider"></div>
-        <div class="exp-logo-card">
-          <img src="https://logo.clearbit.com/intuit.com" alt="Intuit" class="exp-logo-img" onerror="this.style.display='none'">
-          <span class="exp-logo-name">Intuit</span>
-          <span class="exp-logo-years">2021 – Aug 2026</span>
-        </div>
-        <div class="exp-logo-divider"></div>
-        <div class="exp-logo-card">
-          <img src="https://logo.clearbit.com/oracle.com" alt="Oracle" class="exp-logo-img" onerror="this.style.display='none'">
-          <span class="exp-logo-name">Oracle</span>
-          <span class="exp-logo-years">2006 – 2021</span>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<!-- PROJECTS -->
-<section id="projects" class="section">
-  <div class="container">
-    <h2 class="section-title">Key Projects</h2>
-    <div class="projects-grid">
-
-      <div class="project-card">
-        <div class="project-icon">🧭</div>
-        <h3>AI Command Center — Program Single Source of Truth</h3>
-        <p>Stood up an AI-based Command Center at Kaseya in one quarter as the single source of truth for program information — feeding clear KPIs, faster decisions, and monthly business reviews with the GM on ARR, churn, upsell/cross-sell, and NPS.</p>
-        <div class="project-tags">
-          <span class="tag">AI</span><span class="tag">SSOT</span><span class="tag">Claude</span><span class="tag">Program Management</span>
-        </div>
-      </div>
-
-      <div class="project-card">
-        <div class="project-icon">🛡️</div>
-        <h3>INKY Trials in the Kaseya Suite</h3>
-        <p>Embedded INKY email security trials into other Kaseya suite products, partnering with Product Marketing, Demand Generation, and Account Managers — 10% trial-to-paid conversion and higher attach rates across 15% of products.</p>
-        <div class="project-tags">
-          <span class="tag">Email Security</span><span class="tag">In-Product Trials</span><span class="tag">GTM</span><span class="tag">Cross-Sell</span>
-        </div>
-      </div>
-
-      <div class="project-card">
-        <div class="project-icon">🔐</div>
-        <h3>Cyber Resilience &amp; BCDR Platform Consolidation</h3>
-        <p>Lead BCDR and platform consolidation across Cyber Resilience, including migrating legacy email security into a unified architecture — tied to tiered licensing and Net Retention Rate goals for the suite.</p>
-        <div class="project-tags">
-          <span class="tag">Cyber Resilience</span><span class="tag">BCDR</span><span class="tag">Migration</span><span class="tag">NRR</span>
-        </div>
-      </div>
-
-      <div class="project-card">
-        <div class="project-icon">🤖</div>
-        <h3>AI-Driven Virtual Expert Platform</h3>
-        <p>End-to-end AI Native Program Management driving Sales Transformation and Customer Success across Intuit's expert-led products — Intuit Enterprise Suite, Accountant Suite, and All-in-One (AiO).</p>
-        <div class="project-tags">
-          <span class="tag">GenAI</span><span class="tag">VEP</span><span class="tag">AiO</span><span class="tag">Sales Transformation</span>
-        </div>
-      </div>
-
-      <div class="project-card">
-        <div class="project-icon">⚡</div>
-        <h3>Developer Velocity &amp; Platform Operations</h3>
-        <p>Increased developer productivity through observability improvements (MTTD/MTTR reduction), Gateway and Kubernetes platform management, and streamlined incident management processes.</p>
-        <div class="project-tags">
-          <span class="tag">Kubernetes</span><span class="tag">Observability</span><span class="tag">Incident Mgmt</span>
-        </div>
-      </div>
-
-      <div class="project-card">
-        <div class="project-icon">☁️</div>
-        <h3>Oracle Cloud Gen 2 (OCI)</h3>
-        <p>Led migration of Oracle clients from OPC to OCI Gen 2 cloud-native applications. Established release processes, pod/VM caching, pre-emptive cloning, and region-specific datacenter rollout strategies.</p>
-        <div class="project-tags">
-          <span class="tag">OCI</span><span class="tag">Block Volume</span><span class="tag">HIPAA</span><span class="tag">FedRAMP</span>
-        </div>
-      </div>
-
-      <div class="project-card">
-        <div class="project-icon">🔄</div>
-        <h3>Cross-Company Agile Transformation</h3>
-        <p>Drove Fusion Middleware 12c and Database 19c migrations at scale. Led Agile and Jira rollout and adoption across multiple Oracle India engineering teams.</p>
-        <div class="project-tags">
-          <span class="tag">Agile</span><span class="tag">Jira</span><span class="tag">DB Migration</span><span class="tag">SAFe</span>
-        </div>
-      </div>
-
-      <div class="project-card">
-        <div class="project-icon">🔌</div>
-        <h3>Google Suite MCP Connector</h3>
-        <p>Open-source MCP server connecting personal Google accounts to Claude — Drive, Docs, Sheets, Slides, Gmail & Calendar in a single zero-dependency npm package. 29 tools, BYOC auth, npx-runnable.</p>
-        <div class="project-tags">
-          <span class="tag">MCP</span><span class="tag">Google APIs</span><span class="tag">TypeScript</span><span class="tag">Open Source</span>
-        </div>
-        <div style="margin-top:0.75rem">
-          <a href="https://github.com/goyalsandeep2k/google-suite-mcp" target="_blank" style="font-size:0.8rem;color:#4285f4;text-decoration:none;">GitHub →</a>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- SKILLS -->
-<section id="skills" class="section section-alt">
-  <div class="container">
-    <h2 class="section-title">Skills</h2>
-    <div class="skills-grid">
-
-      <div class="skill-category">
-        <h3 class="skill-cat-title">AI &amp; GenAI</h3>
-        <div class="skill-list">
-          <span class="skill-pill skill-ai">Enterprise GenAI Transformation</span>
-          <span class="skill-pill skill-ai">AI-Powered Seller Productivity</span>
-          <span class="skill-pill skill-ai">GenAI Code Assistants</span>
-          <span class="skill-pill skill-ai">AI Document Intelligence</span>
-          <span class="skill-pill skill-ai">GTM &amp; Revenue Enablement</span>
-          <span class="skill-pill skill-ai">Claude Agent SDK</span>
-        </div>
-      </div>
-
-      <div class="skill-category">
-        <h3 class="skill-cat-title">AI Tools &amp; Platforms</h3>
-        <div class="skill-list">
-          <span class="skill-pill skill-tool">Claude</span>
-          <span class="skill-pill skill-tool">NotebookLM</span>
-          <span class="skill-pill skill-tool">Gemini Gems</span>
-          <span class="skill-pill skill-tool">GitHub Copilot</span>
-          <span class="skill-pill skill-tool">Airtable</span>
-          <span class="skill-pill skill-tool">Cursor</span>
-        </div>
-      </div>
-
-      <div class="skill-category">
-        <h3 class="skill-cat-title">Program Management</h3>
-        <div class="skill-list">
-          <span class="skill-pill skill-pm">Release Management</span>
-          <span class="skill-pill skill-pm">Risk Assessment</span>
-          <span class="skill-pill skill-pm">Product Roadmap Planning</span>
-          <span class="skill-pill skill-pm">Cross-Geo Communication</span>
-          <span class="skill-pill skill-pm">Incident Management</span>
-          <span class="skill-pill skill-pm">Executive Communication</span>
-        </div>
-      </div>
-
-      <div class="skill-category">
-        <h3 class="skill-cat-title">Reporting &amp; Tools</h3>
-        <div class="skill-list">
-          <span class="skill-pill skill-tool">Smartsheets · Expert</span>
-          <span class="skill-pill skill-tool">Excel · Expert</span>
-          <span class="skill-pill skill-tool">PowerPoint · Expert</span>
-          <span class="skill-pill skill-tool">Jira</span>
-          <span class="skill-pill skill-tool">Jenkins/Hudson</span>
-          <span class="skill-pill skill-tool">JFrog/Artifactory</span>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- CLAUDE SKILLS -->
-<section id="claude-skills" class="section claude-section">
-  <div class="container">
-    <div class="claude-header">
-      <div class="claude-badge">🤖 Built with Anthropic Claude Agent SDK</div>
-      <h2 class="section-title">Claude AI Skills</h2>
-      <p class="claude-subtitle">Specialized AI agents I've built that give Claude a specific identity, toolset, and knowledge base — turning it from a general assistant into a domain expert. Each skill is a self-contained <code>SKILL.md</code> file invoked via slash commands or natural language triggers.</p>
-      <a href="https://goyalsandeep2k.github.io/claude-skills-market/" target="_blank" class="btn btn-accent" style="margin-top:16px">Visit Sandeep's Claude Skills Marketplace →</a>
-    </div>
-
-    <div class="claude-stats">
-      <div class="claude-stat"><span class="cstat-num" id="claude-skills-count">14</span><span class="cstat-label">Skills Built</span></div>
-      <div class="claude-stat"><span class="cstat-num" id="claude-skills-live">14</span><span class="cstat-label">Live in Production</span></div>
-      <div class="claude-stat"><span class="cstat-num">6</span><span class="cstat-label">Integrations</span></div>
-      <div class="claude-stat"><span class="cstat-num">∞</span><span class="cstat-label">Hours Saved</span></div>
-    </div>
-
-    <div class="claude-cards">
-
-      <!-- 1. PMaaS -->
-      <div class="claude-card">
-        <div class="claude-card-top">
-          <div class="claude-card-icon" style="background:rgba(251,191,36,0.15)">🚀</div>
-          <div>
-            <h3>PMaaS</h3>
-            <code>/pmaas</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>Program Management as a Service. Connects to Jira, Smartsheet, Airtable, GitHub, and Slack to generate a polished HTML status report — risks, milestones, project tracking, and meeting prep — all in one shareable command center.</p>
-        <div class="claude-card-tags">
-          <span class="tag">Jira</span><span class="tag">Smartsheet</span><span class="tag">Airtable</span><span class="tag">GitHub</span><span class="tag">Slack</span>
-        </div>
-        <div class="skill-card-footer">
-          <span class="skill-dl-count">⬇ <span class="dl-num">94</span> installs</span>
-          <button class="skill-install-btn" onclick="downloadSkill('https://raw.githubusercontent.com/goyalsandeep2k/claude-skills/main/skills/pmaas/SKILL.md','pmaas-SKILL.md',this)">⬇ Install Skill</button>
-        </div>
-      </div>
-
-      <!-- 2. Meeting Prep -->
-      <div class="claude-card">
-        <div class="claude-card-top">
-          <div class="claude-card-icon" style="background:rgba(99,102,241,0.15)">📅</div>
-          <div>
-            <h3>Meeting Prep &amp; Action Item Triage</h3>
-            <code>/meeting-prep</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>Pre-meeting: pulls context from Slack, Jira, and docs into a 3-min brief with key points and attendee intel. Post-meeting: parses transcripts into owner-assigned, time-bound action items so nothing falls through the cracks.</p>
-        <div class="claude-card-tags">
-          <span class="tag">Transcripts</span><span class="tag">Action Items</span><span class="tag">Jira</span><span class="tag">Slack</span>
-        </div>
-        <div class="skill-card-footer">
-          <span class="skill-dl-count">⬇ <span class="dl-num">76</span> installs</span>
-          <button class="skill-install-btn" onclick="downloadSkill('https://raw.githubusercontent.com/goyalsandeep2k/claude-skills/main/skills/meeting-prep/SKILL.md','meeting-prep-SKILL.md',this)">⬇ Install Skill</button>
-        </div>
-      </div>
-
-      <!-- 3. Exec Status -->
-      <div class="claude-card">
-        <div class="claude-card-top">
-          <div class="claude-card-icon" style="background:rgba(16,185,129,0.15)">📊</div>
-          <div>
-            <h3>Executive Status Summarizer</h3>
-            <code>/exec-status</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>Paste verbose standup notes, Jira exports, or sprint reports — get back a clean 🟢/🟡/🔴 one-pager for VPs and stakeholders. Cuts jargon, surfaces real risks, and calls out decisions needed from leadership.</p>
-        <div class="claude-card-tags">
-          <span class="tag">Status Reports</span><span class="tag">Leadership</span><span class="tag">RYG</span><span class="tag">Jira</span>
-        </div>
-        <div class="skill-card-footer">
-          <span class="skill-dl-count">⬇ <span class="dl-num">71</span> installs</span>
-          <button class="skill-install-btn" onclick="downloadSkill('https://raw.githubusercontent.com/goyalsandeep2k/claude-skills/main/skills/exec-status/SKILL.md','exec-status-SKILL.md',this)">⬇ Install Skill</button>
-        </div>
-      </div>
-
-      <!-- 4. PRD Generator -->
-      <div class="claude-card">
-        <div class="claude-card-top">
-          <div class="claude-card-icon" style="background:rgba(63,185,80,0.15)">📋</div>
-          <div>
-            <h3>PRD Generator</h3>
-            <code>/prd-generator</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>Turns validation research, user feedback, or a product idea into a production-ready PRD — acceptance criteria (Given/When/Then), SMART success metrics, phased rollout plan, and engineering-ready functional requirements. Exports to Markdown or Word.</p>
-        <div class="claude-card-tags">
-          <span class="tag">Product</span><span class="tag">Requirements</span><span class="tag">Acceptance Criteria</span><span class="tag">Rollout</span>
-        </div>
-        <div class="skill-card-footer">
-          <span class="skill-dl-count">⬇ <span class="dl-num">87</span> installs</span>
-          <button class="skill-install-btn" onclick="downloadSkill('https://raw.githubusercontent.com/goyalsandeep2k/claude-skills/main/skills/prd-generator/SKILL.md','prd-generator-SKILL.md',this)">⬇ Install Skill</button>
-        </div>
-      </div>
-
-      <!-- 3. Dependency & Risk Tracker -->
-      <div class="claude-card">
-        <div class="claude-card-top">
-          <div class="claude-card-icon" style="background:rgba(239,68,68,0.15)">🔍</div>
-          <div>
-            <h3>Dependency &amp; Risk Tracker</h3>
-            <code>/dep-risk-tracker</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>Analyzes timelines across multiple programs, flags critical path items, maps cross-team dependencies, and generates a mitigation strategy for every blocker. Produces a full RAID log and filterable HTML dashboard for central risk tracking.</p>
-        <div class="claude-card-tags">
-          <span class="tag">RAID Log</span><span class="tag">Critical Path</span><span class="tag">Jira</span><span class="tag">Slack</span><span class="tag">Mitigation</span>
-        </div>
-        <div class="skill-card-footer">
-          <span class="skill-dl-count">⬇ <span class="dl-num">63</span> installs</span>
-          <button class="skill-install-btn" onclick="downloadSkill('https://raw.githubusercontent.com/goyalsandeep2k/claude-skills/main/skills/dep-risk-tracker/SKILL.md','dep-risk-tracker-SKILL.md',this)">⬇ Install Skill</button>
-        </div>
-      </div>
-
-      <!-- Program Launch -->
-      <div class="claude-card">
-        <div class="claude-card-header">
-          <div class="claude-card-title">
-            <span class="claude-card-emoji">🚦</span>
-            <h3>Program Launch Command Center</h3>
-            <code>/program-launch</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>End-to-end program initiation toolkit. Generates every artifact needed to launch a new program: Charter, OKRs, DRI model, RACI, RAID log, Governance structure, Change Management plan, Operating Rhythm calendar, Portfolio prioritization matrix, and a live HTML health dashboard.</p>
-        <div class="claude-card-tags">
-          <span class="tag">Charter</span><span class="tag">OKRs</span><span class="tag">RACI</span><span class="tag">Governance</span><span class="tag">Health Dashboard</span>
-        </div>
-        <div class="skill-card-footer">
-          <span class="skill-dl-count">⬇ <span class="dl-num">48</span> installs</span>
-          <button class="skill-install-btn" onclick="downloadSkill('https://raw.githubusercontent.com/goyalsandeep2k/claude-skills/main/skills/program-launch/SKILL.md','program-launch-SKILL.md',this)">⬇ Install Skill</button>
-        </div>
-      </div>
-
-      <!-- Annual Planning -->
-      <div class="claude-card">
-        <div class="claude-card-header">
-          <div class="claude-card-title">
-            <span class="claude-card-emoji">🗓</span>
-            <h3>Annual Planning Orchestrator</h3>
-            <code>/annual-planning</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>Runs the full planning cycle end-to-end — ingests strategy papers and OKRs, maps every cross-team dependency, surfaces resource conflicts, drafts commitment requests to partner teams, manages a Smartsheet tracker, and generates a live HTML dashboard with visual dependency map and per-team commitment status.</p>
-        <div class="claude-card-tags">
-          <span class="tag">Annual Planning</span><span class="tag">Dependencies</span><span class="tag">Commitments</span><span class="tag">Smartsheet</span><span class="tag">Dashboard</span>
-        </div>
-        <div class="skill-card-footer">
-          <span class="skill-dl-count">⬇ <span class="dl-num">41</span> installs</span>
-          <button class="skill-install-btn" onclick="downloadSkill('https://raw.githubusercontent.com/goyalsandeep2k/claude-skills/main/skills/annual-planning/SKILL.md','annual-planning-SKILL.md',this)">⬇ Install Skill</button>
-        </div>
-      </div>
-
-      <!-- Google Suite MCP -->
-      <div class="claude-card">
-        <div class="claude-card-header">
-          <div class="claude-card-title">
-            <span class="claude-card-emoji">🔌</span>
-            <h3>Google Suite MCP Connector</h3>
-            <code>npx github:goyalsandeep2k/google-suite-mcp</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>All-in-one MCP server connecting your personal Google account to Claude — Drive, Docs, Sheets, Slides, Gmail &amp; Calendar. 29 tools, zero external dependencies, BYOC OAuth auth. The only connector covering all 6 Google services in a single package.</p>
-        <div class="claude-card-tags">
-          <span class="tag">MCP Connector</span><span class="tag">Google Drive</span><span class="tag">Gmail</span><span class="tag">Slides</span><span class="tag">Calendar</span><span class="tag">TypeScript</span>
-        </div>
-        <div class="skill-card-footer">
-          <span class="skill-dl-count">⭐ Open Source</span>
-          <a href="https://github.com/goyalsandeep2k/google-suite-mcp" target="_blank" class="skill-install-btn" style="text-decoration:none">View on GitHub →</a>
-        </div>
-      </div>
-
-
-      <!-- Resume Critique -->
-      <div class="claude-card">
-        <div class="claude-card-header">
-          <div class="claude-card-title">
-            <span class="claude-card-emoji">🎯</span>
-            <h3>Resume Critique</h3>
-            <code>/critique my resume</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>Expert resume critique with actionable recommendations. 7-dimension health scorecard, what's-missing report, JD readiness check with per-role match %, and prioritized action list. Best for resumes already in good shape that need pro feedback.</p>
-        <div class="claude-card-tags">
-          <span class="tag">Resume</span><span class="tag">Feedback</span><span class="tag">JD Match</span><span class="tag">ATS</span><span class="tag">Career</span>
-        </div>
-        <div class="skill-card-footer">
-          <span class="skill-dl-count">⭐ Open Source</span>
-          <a href="https://github.com/goyalsandeep2k/resume-critique" target="_blank" class="skill-install-btn" style="text-decoration:none">View on GitHub →</a>
-        </div>
-      </div>
-
-      <!-- Resume Polish -->
-      <div class="claude-card">
-        <div class="claude-card-header">
-          <div class="claude-card-title">
-            <span class="claude-card-emoji">✨</span>
-            <h3>Resume Polish</h3>
-            <code>/polish my resume</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>Interactive resume review and polish for job aspirants. ATS compatibility check, accomplishment integration, side-by-side collaborative rewrite, keyword gap report, and full LinkedIn optimization (headline + About + experience bullets).</p>
-        <div class="claude-card-tags">
-          <span class="tag">Resume</span><span class="tag">ATS</span><span class="tag">LinkedIn</span><span class="tag">Career</span><span class="tag">Job Search</span>
-        </div>
-        <div class="skill-card-footer">
-          <span class="skill-dl-count">⭐ Open Source</span>
-          <a href="https://github.com/goyalsandeep2k/resume-polish" target="_blank" class="skill-install-btn" style="text-decoration:none">View on GitHub →</a>
-        </div>
-      </div>
-
-      <!-- Resume Builder -->
-      <div class="claude-card">
-        <div class="claude-card-header">
-          <div class="claude-card-title">
-            <span class="claude-card-emoji">🏗️</span>
-            <h3>Resume Builder</h3>
-            <code>/resume builder</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>Interactive resume builder web app with live two-panel editor. Navy/blue design, auto metric highlights, Intuit/Oracle logo badges, clickable LinkedIn/GitHub/email links, executive stat chips, and one-click PDF export.</p>
-        <div class="claude-card-tags">
-          <span class="tag">Resume</span><span class="tag">Builder</span><span class="tag">Interactive</span><span class="tag">PDF</span><span class="tag">Career</span>
-        </div>
-        <div class="skill-card-footer">
-          <span class="skill-dl-count">⭐ Open Source</span>
-          <a href="https://goyalsandeep2k.github.io/resume-builder/" target="_blank" class="skill-install-btn" style="text-decoration:none">Launch App →</a>
-        </div>
-      </div>
-
-      <!-- LinkedIn Job Search Dashboard -->
-      <div class="claude-card">
-        <div class="claude-card-header">
-          <div class="claude-card-title">
-            <span class="claude-card-emoji">💼</span>
-            <h3>LinkedIn Job Search Dashboard</h3>
-            <code>/reconnect-job-search</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>AI-powered job search command center — pulls real applications from LinkedIn, scores fit against your profile, tracks pipeline stages, and generates a live HTML dashboard. Built for senior leaders managing 50+ active applications.</p>
-        <div class="claude-card-tags">
-          <span class="tag">Job Search</span><span class="tag">LinkedIn</span><span class="tag">Pipeline</span><span class="tag">Fit Scoring</span><span class="tag">TPM</span>
-        </div>
-        <div class="skill-card-footer">
-          <span class="skill-dl-count">⭐ Open Source</span>
-          <a href="https://goyalsandeep2k.github.io/job-search-dashboard/" target="_blank" class="skill-install-btn" style="text-decoration:none">Live Demo →</a>
-        </div>
-      </div>
-
-      <!-- Program Health Dashboard -->
-      <div class="claude-card">
-        <div class="claude-card-header">
-          <div class="claude-card-title">
-            <span class="claude-card-emoji">📊</span>
-            <h3>Program Health Dashboard</h3>
-            <code>/program-health-dashboard</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>Generate a real-time, shareable program health dashboard — lagging/leading indicators, RAG sub-goal status, milestone timeline, risks, and decisions needed. Works for any program. Self-contained HTML, publishable to GitHub Pages.</p>
-        <div class="claude-card-tags">
-          <span class="tag">TPM</span><span class="tag">Dashboard</span><span class="tag">KPIs</span><span class="tag">RAG Status</span><span class="tag">Milestones</span>
-        </div>
-        <div class="skill-card-footer">
-          <span class="skill-dl-count">⬇ <span class="dl-num">34</span> installs</span>
-          <a href="https://goyalsandeep2k.github.io/program-health-dashboard/" target="_blank" class="skill-install-btn" style="text-decoration:none">View Demo →</a>
-        </div>
-      </div>
-
-      <!-- Org Priority Stack -->
-      <div class="claude-card">
-        <div class="claude-card-header">
-          <div class="claude-card-title">
-            <span class="claude-card-emoji">🏆</span>
-            <h3>Org Priority Stack</h3>
-            <code>/org-priority-stack</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>Rank every competing program in your org by revenue impact. Define organizational priorities, assign DRIs, and publish a visual dashboard — the single source of truth for staffing decisions and program go/no-go calls.</p>
-        <div class="claude-card-tags">
-          <span class="tag">Prioritization</span><span class="tag">Revenue</span><span class="tag">DRI</span><span class="tag">Org Design</span><span class="tag">Dashboard</span>
-        </div>
-        <div class="skill-card-footer">
-          <span class="skill-dl-count">⬇ <span class="dl-num">27</span> installs</span>
-          <a href="https://goyalsandeep2k.github.io/program-health-dashboard/priorities.html" target="_blank" class="skill-install-btn" style="text-decoration:none">View Demo →</a>
-        </div>
-      </div>
-
-      <!-- Sales Program Health -->
-      <div class="claude-card">
-        <div class="claude-card-header">
-          <div class="claude-card-title">
-            <span class="claude-card-emoji">💹</span>
-            <h3>Sales Program Health</h3>
-            <code>/sales-program-health</code>
-          </div>
-          <span class="status-badge status-live">Live</span>
-        </div>
-        <p>Revenue-aware health dashboard with ARR waterfall, NRR, CAC, LTV:CAC, unit economics, and an AI-generated exec narrative. Answers: <em>"Are we on track to hit ARR target, and why?"</em></p>
-        <div class="claude-card-tags">
-          <span class="tag">ARR</span><span class="tag">NRR</span><span class="tag">CAC · LTV</span><span class="tag">Exec Narrative</span><span class="tag">Revenue</span>
-        </div>
-        <a href="https://goyalsandeep2k.github.io/program-health-dashboard/sales-health.html" target="_blank" class="skill-install-btn" style="text-decoration:none">Live Demo →</a>
-      </div>
-
-    </div>
-
-    <!-- Marketplace CTA -->
-    <a href="https://goyalsandeep2k.github.io/claude-skills-market/" target="_blank" class="skills-marketplace-cta">
-      <div class="skills-mkt-left">
-        <span class="skills-mkt-icon">⚡</span>
-        <div>
-          <div class="skills-mkt-title">Browse Sandeep's Claude Skills Marketplace</div>
-          <div class="skills-mkt-sub">11 skills + 1 MCP connector live · search · install · contribute your own</div>
-        </div>
-      </div>
-      <span class="skills-mkt-arrow">→</span>
-    </a>
-
-    <div class="claude-explainer">
-      <h3>What are Claude Skills?</h3>
-      <p>Skills are specialized AI agents built on the <strong>Anthropic Claude Agent SDK</strong>. Each skill is a <code>SKILL.md</code> file that defines an identity, toolset, knowledge base, and trigger patterns — transforming Claude into a domain expert. They connect to live data (Slack, Smartsheets, Google Drive) and are invoked via slash commands like <code>/aio-mastermind</code>.</p>
-    </div>
-  </div>
-</section>
-
-<!-- GITHUB REPOS -->
-<section id="repos" class="section">
-  <div class="container">
-    <h2 class="section-title">GitHub Repositories</h2>
-    <div id="repos-grid" class="repos-grid">
-      <div class="repo-loading">Loading repositories…</div>
-    </div>
-    <div style="text-align:center;margin-top:24px">
-      <a href="https://github.com/goyalsandeep2k" target="_blank" class="btn btn-secondary">View all on GitHub →</a>
-    </div>
-  </div>
-</section>
-
-<!-- EDUCATION -->
-<section id="education" class="section section-alt">
-  <div class="container">
-    <h2 class="section-title">Education &amp; Certifications</h2>
-    <div class="edu-cert-grid">
-
-      <div>
-        <h3 class="sub-section-title">Education</h3>
-        <div class="edu-list">
-          <div class="edu-card">
-            <div class="edu-logo-wrap">
-              <img src="https://logo.clearbit.com/nitkkr.ac.in" class="edu-logo-img" alt="NIT" onerror="this.outerHTML='<div class=\'edu-icon\'>🎓</div>'">
-            </div>
-            <div>
-              <div class="edu-degree">B.Tech — Computer Engineering</div>
-              <div class="edu-school">National Institute of Technology Kurukshetra, India</div>
-              <div class="edu-meta">2005 · Grade: 80%</div>
-            </div>
-          </div>
-          <div class="edu-card">
-            <div class="edu-logo-wrap">
-              <img src="https://logo.clearbit.com/nmims.edu" class="edu-logo-img" alt="NMIMS" onerror="this.outerHTML='<div class=\'edu-icon\'>📚</div>'">
-            </div>
-            <div>
-              <div class="edu-degree">PGDBM — Post Graduate Diploma in Business Management</div>
-              <div class="edu-school">NMIMS School of Business Management, India</div>
-              <div class="edu-meta">2012 · Grade: A+</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h3 class="sub-section-title">Certifications</h3>
-        <div class="cert-list">
-          <div class="cert-card">
-            <div class="cert-logo-wrap">
-              <img src="https://logo.clearbit.com/scaledagile.com" class="cert-logo-img" alt="SAFe" onerror="this.outerHTML='<div class=\'cert-badge\'>SAFe</div>'">
-            </div>
-            <div>
-              <div class="cert-name">Certified SAFe 4 Agilist</div>
-              <div class="cert-meta">ID: 96457050-5914 · 2018</div>
-            </div>
-          </div>
-          <div class="cert-card">
-            <div class="cert-logo-wrap">
-              <img src="https://logo.clearbit.com/pmi.org" class="cert-logo-img" alt="PMI" onerror="this.outerHTML='<div class=\'cert-badge\'>PMI</div>'">
-            </div>
-            <div>
-              <div class="cert-name">PMI Certified Agile Professional (PMI-ACP)</div>
-              <div class="cert-meta">#2164011 · 2017</div>
-            </div>
-          </div>
-          <div class="cert-card">
-            <div class="cert-logo-wrap">
-              <img src="https://logo.clearbit.com/scrumalliance.org" class="cert-logo-img" alt="CSM" onerror="this.outerHTML='<div class=\'cert-badge\'>CSM</div>'">
-            </div>
-            <div>
-              <div class="cert-name">Certified Scrum Master (CSM)</div>
-              <div class="cert-meta">2016</div>
-            </div>
-          </div>
-          <div class="cert-card">
-            <div class="cert-logo-wrap">
-              <img src="https://logo.clearbit.com/pmi.org" class="cert-logo-img" alt="PMP" onerror="this.outerHTML='<div class=\'cert-badge\'>PMP</div>'">
-            </div>
-            <div>
-              <div class="cert-name">PMP Certified Project Manager</div>
-              <div class="cert-meta">#1452519 · 2012</div>
-            </div>
-          </div>
-          <div class="cert-card">
-            <div class="cert-logo-wrap">
-              <img src="https://logo.clearbit.com/apmg-international.com" class="cert-logo-img" alt="ITIL" onerror="this.outerHTML='<div class=\'cert-badge\'>ITIL</div>'">
-            </div>
-            <div>
-              <div class="cert-name">APMG-UK Certified ITIL v3 Service Manager</div>
-              <div class="cert-meta">APMG-UK · 2009</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- PERSONAL -->
-<section id="personal" class="section">
-  <div class="container">
-    <h2 class="section-title">Personal</h2>
-    <div class="personal-grid">
-
-      <!-- Achievements -->
-      <div class="personal-card">
-        <h3 class="personal-card-title">🏆 Personal Achievements</h3>
-        <div class="achievement-item achievement-item--photo">
-          <div class="achieve-icon">💪</div>
-          <div>
-            <div class="achieve-title">Health Transformation</div>
-            <p>265 lbs → 190 lbs (2011–2020). Marathon finisher. Happy to share my journey with anyone struggling with health or weight issues.</p>
-            <a href="https://goyalsandeep2k.github.io/personal-health-tracker/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:7px 14px;background:linear-gradient(135deg,rgba(79,142,247,0.15),rgba(167,139,250,0.15));border:1px solid rgba(79,142,247,0.4);border-radius:8px;color:#7eb3fa;font-size:0.78rem;font-weight:600;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='linear-gradient(135deg,rgba(79,142,247,0.25),rgba(167,139,250,0.25))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(79,142,247,0.15),rgba(167,139,250,0.15))'">
-              📊 View My Health Dashboard →
-            </a>
-          </div>
-        </div>
-        <div class="transformation-photo-wrap">
-          <img src="weight-loss.jpg" alt="Sandeep's health transformation — Before 2011 and After 2020" class="transformation-photo" loading="lazy">
-        </div>
-        <div class="achievement-item">
-          <div class="achieve-icon">📈</div>
-          <div>
-            <div class="achieve-title">Self-Directed Investing</div>
-            <p>Managing my own portfolio with a personal CAGR of 15%. Core holdings: QQQ (50%), TSLA (20%), GOOG (20%), IBIT (10%).</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Bucket List -->
-      <div class="personal-card">
-        <h3 class="personal-card-title">🎯 Bucket List</h3>
-        <ul class="bucket-list">
-          <li class="bucket-done">Parasailing <span class="done-badge">Done 2019</span></li>
-          <li class="bucket-done">Full Marathon (26.2 miles) <span class="done-badge">Done 2021</span></li>
-          <li class="bucket-done">Surfing <span class="done-badge">Done</span></li>
-          <li class="bucket-done">Paddleboarding <span class="done-badge">Done</span></li>
-          <li class="bucket-todo">Hiking Half Dome, Yosemite</li>
-          <li class="bucket-todo">Sky Diving</li>
-          <li class="bucket-todo">Learn Jiu-Jitsu</li>
-        </ul>
-      </div>
-
-      <!-- Hobbies -->
-      <div class="personal-card">
-        <h3 class="personal-card-title">🎮 Hobbies</h3>
-        <div class="hobbies-grid">
-          <div class="hobby-tile" style="--hc:rgba(249,115,22,0.15);--hborder:rgba(249,115,22,0.3)">
-            <div class="hobby-emoji">🍳</div><div class="hobby-label">Cooking</div>
-          </div>
-          <div class="hobby-tile" style="--hc:rgba(59,130,246,0.15);--hborder:rgba(59,130,246,0.3)">
-            <div class="hobby-emoji">✈️</div><div class="hobby-label">Travel</div>
-          </div>
-          <div class="hobby-tile" style="--hc:rgba(16,185,129,0.15);--hborder:rgba(16,185,129,0.3)">
-            <div class="hobby-emoji">🎾</div><div class="hobby-label">Tennis</div>
-          </div>
-          <div class="hobby-tile" style="--hc:rgba(139,92,246,0.15);--hborder:rgba(139,92,246,0.3)">
-            <div class="hobby-emoji">🥾</div><div class="hobby-label">Hiking</div>
-          </div>
-          <div class="hobby-tile" style="--hc:rgba(236,72,153,0.15);--hborder:rgba(236,72,153,0.3)">
-            <div class="hobby-emoji">🧘</div><div class="hobby-label">Yoga</div>
-          </div>
-          <div class="hobby-tile" style="--hc:rgba(245,158,11,0.15);--hborder:rgba(245,158,11,0.3)">
-            <div class="hobby-emoji">🎙️</div><div class="hobby-label">Podcasts</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Influencers -->
-      <div class="personal-card">
-        <h3 class="personal-card-title">💡 Influencers</h3>
-        <div class="inf-grid">
-          <div class="inf-card">
-            <div class="inf-avatar" style="--c1:#f97316;--c2:#ef4444">DG</div>
-            <div class="inf-card-name">David Goggins</div>
-            <div class="inf-card-desc">Never give up mindset; transformed health focus</div>
-          </div>
-          <div class="inf-card">
-            <div class="inf-avatar" style="--c1:#0ea5e9;--c2:#6366f1">MJ</div>
-            <div class="inf-card-name">Michael Jordan</div>
-            <div class="inf-card-desc">Leadership, passion &amp; winning mentality</div>
-          </div>
-          <div class="inf-card">
-            <div class="inf-avatar" style="--c1:#3b82f6;--c2:#06b6d4">DF</div>
-            <div class="inf-card-name">David Felts</div>
-            <div class="inf-card-desc">First mentor; PM leadership &amp; articulation</div>
-          </div>
-          <div class="inf-card">
-            <div class="inf-avatar" style="--c1:#8b5cf6;--c2:#ec4899">TR</div>
-            <div class="inf-card-name">Tony Robbins</div>
-            <div class="inf-card-desc">Financial &amp; philanthropic decision-making</div>
-          </div>
-          <div class="inf-card">
-            <div class="inf-avatar" style="--c1:#10b981;--c2:#3b82f6">JR</div>
-            <div class="inf-card-name">Joe Rogan</div>
-            <div class="inf-card-desc">Curiosity and exploration across disciplines</div>
-          </div>
-          <div class="inf-card">
-            <div class="inf-avatar" style="--c1:#f59e0b;--c2:#10b981">RP</div>
-            <div class="inf-card-name">Rhonda Patrick</div>
-            <div class="inf-card-desc">Diet, sleep patterns &amp; longevity science</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Podcasts -->
-      <div class="personal-card">
-        <h3 class="personal-card-title">🎙️ Podcasts</h3>
-        <div class="podcast-list">
-          <a href="https://open.spotify.com/show/4rOoJ6Egrf8K2IrywzwOMk" target="_blank" class="podcast-item">
-            <div class="podcast-art-wrap">
-              <img id="art-jre" src="" alt="JRE" class="podcast-art-img">
-              <span class="podcast-art-fallback">🎙️</span>
-            </div>
-            <div><div class="pod-name">Joe Rogan Experience</div><div class="pod-desc">Meets with individuals from all walks of life</div><div class="pod-platform">Spotify</div></div>
-          </a>
-          <a href="https://tim.blog/podcast/" target="_blank" class="podcast-item">
-            <div class="podcast-art-wrap">
-              <img id="art-tim" src="" alt="Tim Ferriss" class="podcast-art-img">
-              <span class="podcast-art-fallback">⚡</span>
-            </div>
-            <div><div class="pod-name">Tim Ferriss Show</div><div class="pod-desc">Meets with high performers</div><div class="pod-platform">iTunes</div></div>
-          </a>
-          <a href="https://jockopodcast.com" target="_blank" class="podcast-item">
-            <div class="podcast-art-wrap">
-              <img id="art-jocko" src="" alt="Jocko" class="podcast-art-img">
-              <span class="podcast-art-fallback">🪖</span>
-            </div>
-            <div><div class="pod-name">Jocko Podcast</div><div class="pod-desc">Meets with individuals who overcame failures and setbacks</div><div class="pod-platform">YouTube / Web</div></div>
-          </a>
-          <a href="https://open.spotify.com/show/2mB9fQAGNGGIARnHetjm0q" target="_blank" class="podcast-item">
-            <div class="podcast-art-wrap">
-              <img id="art-mi" src="" alt="Master Investor" class="podcast-art-img">
-              <span class="podcast-art-fallback">📈</span>
-            </div>
-            <div><div class="pod-name">Master Investor</div><div class="pod-desc">Deep dives into the world's greatest investors and their strategies</div><div class="pod-platform">Spotify</div></div>
-          </a>
-          <a href="https://lexfridman.com/podcast/" target="_blank" class="podcast-item">
-            <div class="podcast-art-wrap">
-              <img id="art-lex" src="" alt="Lex Fridman" class="podcast-art-img">
-              <span class="podcast-art-fallback">🤖</span>
-            </div>
-            <div><div class="pod-name">Lex Fridman Podcast</div><div class="pod-desc">Conversations about AI, science, technology and humanity</div><div class="pod-platform">YouTube / Web</div></div>
-          </a>
-          <a href="https://www.hubermanlab.com/podcast" target="_blank" class="podcast-item">
-            <div class="podcast-art-wrap">
-              <img id="art-huberman" src="" alt="Huberman Lab" class="podcast-art-img">
-              <span class="podcast-art-fallback">🧠</span>
-            </div>
-            <div><div class="pod-name">Huberman Lab</div><div class="pod-desc">Science-based tools for everyday life — sleep, focus, fitness</div><div class="pod-platform">YouTube / Web</div></div>
-          </a>
-          <a href="https://stevenbartlett.com/doac/" target="_blank" class="podcast-item">
-            <div class="podcast-art-wrap">
-              <img id="art-doac" src="" alt="Diary of a CEO" class="podcast-art-img">
-              <span class="podcast-art-fallback">📓</span>
-            </div>
-            <div><div class="pod-name">Diary of a CEO</div><div class="pod-desc">Steven Bartlett's raw conversations with world-class entrepreneurs</div><div class="pod-platform">YouTube / Spotify</div></div>
-          </a>
-          <a href="https://fallofcivilizationspodcast.com" target="_blank" class="podcast-item">
-            <div class="podcast-art-wrap">
-              <img id="art-foc" src="" alt="Fall of Civilizations" class="podcast-art-img">
-              <span class="podcast-art-fallback">🏛️</span>
-            </div>
-            <div><div class="pod-name">Fall of Civilizations</div><div class="pod-desc">Stories of lost empires and the people who lived through their collapse</div><div class="pod-platform">Web / Spotify</div></div>
-          </a>
-        </div>
-      </div>
-
-      <!-- Books -->
-      <div class="personal-card">
-        <h3 class="personal-card-title">📚 Top Reads</h3>
-        <div class="book-grid">
-          <a href="https://openlibrary.org/search?q=cant+hurt+me+goggins" target="_blank" class="book-card">
-            <div class="book-cover-wrap">
-              <img src="https://covers.openlibrary.org/b/isbn/1544512279-M.jpg" alt="Can't Hurt Me" class="book-cover-img" onerror="this.outerHTML='<div class=\'book-cover-fallback\'>📖</div>'">
-            </div>
-            <div class="book-card-info">
-              <div class="book-title">Can't Hurt Me</div>
-              <div class="book-author">David Goggins</div>
-            </div>
-          </a>
-          <a href="https://openlibrary.org/search?q=greenlights+mcconaughey" target="_blank" class="book-card">
-            <div class="book-cover-wrap">
-              <img src="https://covers.openlibrary.org/b/isbn/0593139135-M.jpg" alt="Greenlights" class="book-cover-img" onerror="this.outerHTML='<div class=\'book-cover-fallback\'>📖</div>'">
-            </div>
-            <div class="book-card-info">
-              <div class="book-title">Greenlights</div>
-              <div class="book-author">Matthew McConaughey</div>
-            </div>
-          </a>
-          <a href="https://openlibrary.org/search?q=atomic+habits+james+clear" target="_blank" class="book-card">
-            <div class="book-cover-wrap">
-              <img src="https://covers.openlibrary.org/b/isbn/0735211299-M.jpg" alt="Atomic Habits" class="book-cover-img" onerror="this.outerHTML='<div class=\'book-cover-fallback\'>📖</div>'">
-            </div>
-            <div class="book-card-info">
-              <div class="book-title">Atomic Habits</div>
-              <div class="book-author">James Clear</div>
-            </div>
-          </a>
-          <a href="https://openlibrary.org/search?q=art+of+war+sun+tzu" target="_blank" class="book-card">
-            <div class="book-cover-wrap">
-              <img src="https://covers.openlibrary.org/b/isbn/9780140455526-M.jpg" alt="The Art of War" class="book-cover-img" onerror="this.outerHTML='<div class=\'book-cover-fallback\'>📖</div>'">
-            </div>
-            <div class="book-card-info">
-              <div class="book-title">The Art of War</div>
-              <div class="book-author">Sun Tzu</div>
-            </div>
-          </a>
-        </div>
-        <a href="#books" class="see-all-link">See all books →</a>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- BLOG -->
-<section id="blog" class="section">
-  <div class="container">
-    <h2 class="section-title">Blog — Medium</h2>
-    <div class="blog-header">
-      <p class="blog-subtitle">Writing about AI-native program management, leadership, and travel. Updated live from <a href="https://medium.com/@goyalsandeep2k" target="_blank">Medium</a>.</p>
-    </div>
-    <div id="blog-grid" class="blog-grid">
-      <div class="blog-loading">
-        <div class="blog-loading-spinner"></div>
-        Loading latest posts…
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:32px">
-      <a href="https://medium.com/@goyalsandeep2k" target="_blank" class="btn btn-secondary">Explore more on Medium →</a>
-    </div>
-  </div>
-</section>
-
-<!-- BOOKS -->
-<section id="books" class="section section-alt">
-  <div class="container">
-    <h2 class="section-title">Books Read</h2>
-    <div class="books-categories">
-
-      <div class="book-cat-block">
-        <div class="book-cat-header" style="--cc:#f97316">💪 Self Growth &amp; Motivation</div>
-        <div class="book-list-grid">
-          <a href="https://openlibrary.org/search?q=cant+hurt+me+goggins" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1544512279-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Can't Hurt Me</div><div class="book-row-author">David Goggins</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=open+andre+agassi" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0307388409-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Open</div><div class="book-row-author">Andre Agassi</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=awaken+giant+within+robbins" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0671791540-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Awaken the Giant Within</div><div class="book-row-author">Tony Robbins</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=essentialism+greg+mckeown" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0804137382-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Essentialism</div><div class="book-row-author">Greg McKeown</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=effortless+greg+mckeown" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0593135423-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Effortless</div><div class="book-row-author">Greg McKeown</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=predictably+irrational+ariely" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/006135323X-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Predictably Irrational</div><div class="book-row-author">Dan Ariely</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=tipping+point+gladwell" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0316346624-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The Tipping Point</div><div class="book-row-author">Malcolm Gladwell</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=blink+malcolm+gladwell" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0316010669-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Blink</div><div class="book-row-author">Malcolm Gladwell</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=outliers+malcolm+gladwell" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0316017922-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Outliers</div><div class="book-row-author">Malcolm Gladwell</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=the+10x+rule+grant+cardone" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1118116720-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The 10X Rule</div><div class="book-row-author">Grant Cardone</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=your+next+5+moves+patrick+bet+david" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1982154578-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Your Next 5 Moves</div><div class="book-row-author">Patrick Bet-David</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=80+20+principle+richard+koch" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0385491743-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The 80/20 Principle</div><div class="book-row-author">Richard Koch</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=obstacle+is+the+way+ryan+holiday" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1591846358-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The Obstacle is the Way</div><div class="book-row-author">Ryan Holiday</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=greenlights+mcconaughey" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0593139135-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Greenlights</div><div class="book-row-author">Matthew McConaughey</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=4+hour+work+week+ferriss" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0307353133-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The 4 Hour Work Week</div><div class="book-row-author">Tim Ferriss</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=unlimited+power+tony+robbins" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0684845776-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Unlimited Power</div><div class="book-row-author">Tony Robbins</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=radical+acceptance+tara+brach" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1583335080-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Radical Acceptance</div><div class="book-row-author">Tara Brach</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=choose+possibility" target="_blank" class="book-row">
-            <div><div class="book-row-title">Choose Possibility</div><div class="book-row-author">Sukhinder Singh Cassidy</div></div>
-          </a>
-        </div>
-      </div>
-
-      <div class="book-cat-block">
-        <div class="book-cat-header" style="--cc:#10b981">🏋️ Health &amp; Weight Loss</div>
-        <div class="book-list-grid">
-          <a href="https://openlibrary.org/search?q=spark+john+ratey" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0316113514-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Spark</div><div class="book-row-author">John Ratey</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=4+hour+body+tim+ferriss" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/030759341X-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The 4 Hour Body</div><div class="book-row-author">Tim Ferriss</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=super+human+dave+asprey" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0062905783-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Super Human</div><div class="book-row-author">Dave Asprey</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=genius+foods+max+lugavere" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0062562851-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Genius Foods</div><div class="book-row-author">Max Lugavere</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=the+good+gut+sonnenburg" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1594206498-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The Good Gut</div><div class="book-row-author">Justin Sonnenburg</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=how+not+to+die+greger" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1250066115-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">How Not to Die</div><div class="book-row-author">Michael Greger</div></div>
-          </a>
-        </div>
-      </div>
-
-      <div class="book-cat-block">
-        <div class="book-cat-header" style="--cc:#3b82f6">👔 Leadership</div>
-        <div class="book-list-grid">
-          <a href="https://openlibrary.org/search?q=extreme+ownership+jocko+willink" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1250067057-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Extreme Ownership</div><div class="book-row-author">Jocko Willink</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=dichotomy+of+leadership+jocko" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1250195772-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The Dichotomy of Leadership</div><div class="book-row-author">Jocko Willink</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=black+box+thinking+matthew+syed" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1473613779-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Black Box Thinking</div><div class="book-row-author">Matthew Syed</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=tribe+of+mentors+tim+ferriss" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1328994961-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Tribe of Mentors</div><div class="book-row-author">Tim Ferriss</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=magic+of+thinking+big+schwartz" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0671646788-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The Magic of Thinking Big</div><div class="book-row-author">David Schwartz</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=art+of+war+sun+tzu" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/9780140455526-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The Art of War</div><div class="book-row-author">Sun Tzu</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=mamba+mentality+kobe+bryant" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0374201234-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The Mamba Mentality</div><div class="book-row-author">Kobe Bryant</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=radical+candor+kim+scott" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1250103509-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Radical Candor</div><div class="book-row-author">Kim Scott</div></div>
-          </a>
-        </div>
-      </div>
-
-      <div class="book-cat-block">
-        <div class="book-cat-header" style="--cc:#f59e0b">💰 Investment &amp; Money</div>
-        <div class="book-list-grid">
-          <a href="https://openlibrary.org/search?q=money+master+the+game+robbins" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1476757801-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Money: Master the Game</div><div class="book-row-author">Tony Robbins</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=unshakeable+tony+robbins" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1501164770-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Unshakeable</div><div class="book-row-author">Tony Robbins</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=the+path+peter+mallouk" target="_blank" class="book-row">
-            <div><div class="book-row-title">The Path</div><div class="book-row-author">Peter Mallouk</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=intelligent+investor+benjamin+graham" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0060555661-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The Intelligent Investor</div><div class="book-row-author">Benjamin Graham</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=i+will+teach+you+to+be+rich+ramit+sethi" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0761147489-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">I Will Teach You to Be Rich</div><div class="book-row-author">Ramit Sethi</div></div>
-          </a>
-        </div>
-      </div>
-
-      <div class="book-cat-block">
-        <div class="book-cat-header" style="--cc:#8b5cf6">🔄 Changing Habits</div>
-        <div class="book-list-grid">
-          <a href="https://openlibrary.org/search?q=atomic+habits+james+clear" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0735211299-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Atomic Habits</div><div class="book-row-author">James Clear</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=breaking+habit+of+being+yourself+joe+dispenza" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1401938094-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Breaking the Habit of Being Yourself</div><div class="book-row-author">Joe Dispenza</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=subtle+art+not+giving+fck+mark+manson" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0062641549-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The Subtle Art of Not Giving A F*ck</div><div class="book-row-author">Mark Manson</div></div>
-          </a>
-        </div>
-      </div>
-
-      <div class="book-cat-block">
-        <div class="book-cat-header" style="--cc:#ec4899">🧘 Spiritual</div>
-        <div class="book-list-grid">
-          <a href="https://openlibrary.org/search?q=power+of+now+eckhart+tolle" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1577314808-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The Power of Now</div><div class="book-row-author">Eckhart Tolle</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=think+like+a+monk+jay+shetty" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/1982134488-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">Think Like a Monk</div><div class="book-row-author">Jay Shetty</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=purpose+driven+life+rick+warren" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0310205719-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The Purpose Driven Life</div><div class="book-row-author">Rick Warren</div></div>
-          </a>
-          <a href="https://openlibrary.org/search?q=monk+who+sold+his+ferrari+robin+sharma" target="_blank" class="book-row">
-            <img src="https://covers.openlibrary.org/b/isbn/0006385125-S.jpg" class="book-row-img" alt="" onerror="this.style.display='none'">
-            <div><div class="book-row-title">The Monk Who Sold His Ferrari</div><div class="book-row-author">Robin Sharma</div></div>
-          </a>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="container">
-    <div class="footer-inner">
-      <div class="footer-name">Sandeep Goyal</div>
-      <div class="footer-links">
-        <a href="https://linkedin.com/in/sandgoya" target="_blank">LinkedIn</a>
-        <a href="https://github.com/goyalsandeep2k" target="_blank">GitHub</a>
-        <a href="https://github.com/goyalsandeep2k/claude-skills" target="_blank">Claude Skills</a>
-      </div>
-      <div class="footer-copy">© 2026 Sandeep Goyal · Built with GitHub Pages</div>
-    </div>
-  </div>
-</footer>
-
-<script src="script.js"></script>
+  <div id="quiz" hidden></div>
+  <footer>Questions compiled from the Formative quizzes, Dougherty Valley worksheets and tutor notes, plus extra practice in the same style.</footer>
+</div>
 <script>
-// Auto-sync skill counts from marketplace skills.json — updates on every page load
-(function() {
-  var SKILLS_URL = 'https://raw.githubusercontent.com/goyalsandeep2k/claude-skills-market/main/skills.json';
-  fetch(SKILLS_URL)
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var total = data.skills ? data.skills.length : 0;
-      if (!total) return;
-      var ids = ['hero-skills-count', 'claude-skills-count', 'claude-skills-live'];
-      ids.forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) el.textContent = total;
-      });
-    })
-    .catch(function() {}); // fail silently — fallback to hardcoded value
-})();
+/* ---------- helpers ---------- */
+const BANK = [];
+const SRC = { F: 'Formative quiz', W: 'Class worksheet', T: 'Tutor notes', X: 'Extra practice' };
+function pick(arr, n) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a.slice(0, n); }
+function Q(t, d, q, a, w, x, s) { BANK.push({ t, d, q, o: [a, ...w], c: [a], x, s: s || 'X', m: false }); }
+function M(t, d, q, a, w, x, s) { BANK.push({ t, d, q, o: [...a, ...w], c: a.slice(), x, s: s || 'X', m: true }); }
+const SHAPES = ['Linear', 'Bent', 'Trigonal planar', 'Trigonal pyramidal', 'Tetrahedral', 'Seesaw', 'T-shaped', 'Trigonal bipyramidal', 'Square planar', 'Square pyramidal', 'Octahedral'];
+const EGS = ['Linear', 'Trigonal planar', 'Tetrahedral', 'Trigonal bipyramidal', 'Octahedral'];
+function geo(sp, shape, d, x, s) { Q('vsepr', d, 'What is the molecular geometry of ' + sp + '?', shape, pick(SHAPES.filter(z => z !== shape), 3), x, s); }
+function egeo(sp, shape, d, x, s) { Q('vsepr', d, 'What is the electron geometry (arrangement of all electron pairs) around the central atom of ' + sp + '?', shape, pick(EGS.filter(z => z !== shape), 3), x, s); }
+function lp(sp, n, d, x, s) { Q('lewis', d, 'How many lone pairs are on the central atom of ' + sp + '?', String(n), ['0', '1', '2', '3'].filter(z => z !== String(n)).slice(0, 3), x, s); }
+function bonded(sp, n, d, x, s) { const all = ['2', '3', '4', '5', '6'].filter(z => z !== String(n)); Q('lewis', d, 'How many atoms are bonded to the central atom of ' + sp + '?', String(n), pick(all, 3), x, s); }
+function val(sp, n, d, x, s) { const w = [n - 2, n + 2, n - 4, n + 4, n + 6].filter(z => z > 0); Q('lewis', d, 'How many total valence electrons must be shown in the Lewis structure of ' + sp + '?', String(n), pick(w, 3).map(String), x, s); }
+function hyb(sp, h, d, x, s) { Q('vsepr', d, 'What is the hybridization of the central atom in ' + sp + '?', h, pick(['sp', 'sp²', 'sp³', 'sp³d', 'sp³d²'].filter(z => z !== h), 3), x, s); }
+function ang(sp, a, wrong, d, x, s) { Q('vsepr', d, 'What is the approximate bond angle in ' + sp + '?', a, wrong, x, s); }
+function typ(eq, ans, d, x, s) { const T = ['Synthesis', 'Decomposition', 'Single displacement', 'Double displacement', 'Combustion']; Q('types', d, 'What type of reaction is this?\n' + eq, ans, T.filter(z => z !== ans).slice(0, 4).length ? pick(T.filter(z => z !== ans), 3) : [], x, s); }
+function bal(t, d, unb, ok, wrong, x, s) { Q(t, d, 'Which is the correctly balanced equation for:\n' + unb, ok, wrong, x || 'Count each element on both sides. A balanced equation has the same number of each kind of atom before and after the arrow.', s); }
+function imf(sp, ans, d, x, s) { const A = ['London dispersion', 'Dipole-dipole', 'Hydrogen bonding', 'Ionic bonding']; Q('imf', d, 'What is the strongest intermolecular force (or attraction) in ' + sp + '?', ans, A.filter(z => z !== ans), x, s); }
+
+/* ---------- IONS & NAMING ---------- */
+Q('ions', 1, 'Which formula is the sulfate ion?', 'SO₄²⁻', ['SO₃²⁻', 'SO₄⁻', 'S²⁻'], 'Sulfate is SO₄²⁻. Sulfite is SO₃²⁻ (one fewer oxygen). Sulfide is the single-atom ion S²⁻.', 'W');
+Q('ions', 1, 'Which formula is the ammonium ion?', 'NH₄⁺', ['NH₃', 'NH₄⁻', 'NH₂⁺'], 'Ammonium is NH₄⁺. NH₃ is the neutral molecule ammonia.', 'W');
+Q('ions', 1, 'Which formula is the nitrate ion?', 'NO₃⁻', ['NO₂⁻', 'N³⁻', 'NO₃²⁻'], 'Nitrate is NO₃⁻. Nitrite is NO₂⁻, and nitride is N³⁻.', 'W');
+Q('ions', 1, 'Which formula is the phosphate ion?', 'PO₄³⁻', ['PO₃³⁻', 'P³⁻', 'PO₄²⁻'], 'Phosphate is PO₄³⁻. Phosphite is PO₃³⁻ (one fewer oxygen). Phosphide is P³⁻.', 'W');
+Q('ions', 1, 'Which formula is the carbonate ion?', 'CO₃²⁻', ['HCO₃⁻', 'CO₃⁻', 'CO₂²⁻'], 'Carbonate is CO₃²⁻. HCO₃⁻ is hydrogen carbonate (bicarbonate).', 'W');
+Q('ions', 1, 'Which formula is the hydroxide ion?', 'OH⁻', ['H₃O⁺', 'H⁻', 'O²⁻'], 'Hydroxide is OH⁻. H₃O⁺ is hydronium, H⁻ is hydride, and O²⁻ is oxide.', 'W');
+Q('ions', 1, 'Which formula is the acetate ion?', 'C₂H₃O₂⁻', ['CO₃²⁻', 'C₂H₃O₂⁺', 'CN⁻'], 'Acetate is C₂H₃O₂⁻ (also written CH₃COO⁻).', 'T');
+Q('ions', 2, 'Which formula is the phosphite ion?', 'PO₃³⁻', ['PO₄³⁻', 'PO₂³⁻', 'P³⁻'], 'Phosphite has one fewer oxygen than phosphate: PO₃³⁻.', 'W');
+Q('ions', 2, 'Which formula is the sulfite ion?', 'SO₃²⁻', ['SO₄²⁻', 'S₂O₃²⁻', 'HSO₃⁻'], 'Sulfite is SO₃²⁻. S₂O₃²⁻ is thiosulfate and HSO₃⁻ is hydrogen sulfite (bisulfite).', 'W');
+Q('ions', 2, 'What is the name of ClO₃⁻?', 'Chlorate', ['Chlorite', 'Perchlorate', 'Hypochlorite'], 'ClO₄⁻ perchlorate, ClO₃⁻ chlorate, ClO₂⁻ chlorite, ClO⁻ hypochlorite. Fewer oxygens means a lower-sounding name.', 'W');
+Q('ions', 2, 'What is the name of ClO₂⁻?', 'Chlorite', ['Chlorate', 'Perchlorate', 'Hypochlorite'], 'ClO₂⁻ is chlorite. ClO₃⁻ is chlorate.', 'W');
+Q('ions', 2, 'Which formula is the permanganate ion?', 'MnO₄⁻', ['MnO₄²⁻', 'Mn²⁺', 'MnO₂'], 'Permanganate is MnO₄⁻. Mn²⁺ is the manganese(II) cation.', 'W');
+Q('ions', 2, 'Which formula is the dichromate ion?', 'Cr₂O₇²⁻', ['CrO₄²⁻', 'Cr₂O₄²⁻', 'Cr³⁺'], 'Dichromate is Cr₂O₇²⁻. Chromate is CrO₄²⁻.', 'W');
+Q('ions', 2, 'Which formula is the thiosulfate ion?', 'S₂O₃²⁻', ['SO₃²⁻', 'SO₄²⁻', 'SCN⁻'], 'Thiosulfate is S₂O₃²⁻ (sulfate with one O replaced by S).', 'W');
+Q('ions', 2, 'Hydrogen carbonate (bicarbonate) has which formula?', 'HCO₃⁻', ['H₂CO₃', 'CO₃²⁻', 'HCO₃²⁻'], 'Add one H⁺ to carbonate CO₃²⁻ and the charge drops from 2− to 1−, giving HCO₃⁻.', 'W');
+Q('ions', 2, 'Which formula is the cyanide ion?', 'CN⁻', ['SCN⁻', 'CNO⁻', 'C₂²⁻'], 'Cyanide is CN⁻. SCN⁻ is thiocyanate.', 'W');
+Q('ions', 3, 'The mercury(I) ion is written as…', 'Hg₂²⁺', ['Hg⁺', 'Hg²⁺', 'Hg₂⁺'], 'Evidence shows mercury(I) exists as a pair of bonded atoms, Hg₂²⁺, not as a lone Hg⁺. Mercury(II) is Hg²⁺.', 'W');
+Q('ions', 1, 'Which of these is a polyatomic ion?', 'NH₄⁺', ['Ca²⁺', 'Cl⁻', 'O²⁻'], 'A polyatomic ion has more than one atom. Ca²⁺, Cl⁻ and O²⁻ are single-atom ions.', 'T');
+M('ions', 1, 'Select ALL the polyatomic ions.', ['NH₄⁺', 'SO₄²⁻', 'CO₃²⁻'], ['Br⁻', 'N³⁻'], 'NH₄⁺, SO₄²⁻ and CO₃²⁻ each contain several atoms. Br⁻ and N³⁻ are single-atom ions.', 'T');
+Q('ions', 1, 'What is the formula of calcium sulfate?', 'CaSO₄', ['Ca₂SO₄', 'Ca(SO₄)₂', 'CaS'], 'Ca²⁺ and SO₄²⁻ have equal and opposite charges, so they combine 1:1.', 'W');
+Q('ions', 2, 'What is the formula of aluminum sulfate?', 'Al₂(SO₄)₃', ['AlSO₄', 'Al₃(SO₄)₂', 'Al(SO₄)₃'], 'Al³⁺ and SO₄²⁻: cross the charges to get Al₂(SO₄)₃ (total +6 and −6). Brackets are needed around the polyatomic ion.', 'T');
+Q('ions', 2, 'What is the formula of ammonium phosphate?', '(NH₄)₃PO₄', ['NH₄PO₄', '(NH₄)₂PO₄', 'NH₄(PO₄)₃'], 'NH₄⁺ is 1+ and PO₄³⁻ is 3−, so three ammoniums balance one phosphate.', 'T');
+Q('ions', 2, 'What is the formula of magnesium hydroxide?', 'Mg(OH)₂', ['MgOH', 'MgOH₂', 'Mg₂OH'], 'Mg²⁺ needs two OH⁻ ions, so OH goes in brackets with a 2.', 'T');
+Q('ions', 2, 'What is the formula of aluminum acetate?', 'Al(C₂H₃O₂)₃', ['AlC₂H₃O₂', 'Al₃(C₂H₃O₂)', 'Al₂(C₂H₃O₂)₃'], 'Al³⁺ needs three acetate (1−) ions.', 'T');
+Q('ions', 2, 'What is the formula of calcium phosphate?', 'Ca₃(PO₄)₂', ['CaPO₄', 'Ca₂(PO₄)₃', 'Ca₃PO₄'], 'Cross the charges: Ca²⁺ and PO₄³⁻ gives Ca₃(PO₄)₂ (6+ and 6−).', 'W');
+Q('ions', 2, 'What is the formula of potassium chromate?', 'K₂CrO₄', ['KCrO₄', 'K₂Cr₂O₇', 'K(CrO₄)₂'], 'K⁺ is 1+ and CrO₄²⁻ is 2−, so two potassiums are needed.', 'T');
+Q('ions', 2, 'What is the formula of barium nitrate?', 'Ba(NO₃)₂', ['BaNO₃', 'Ba₂NO₃', 'BaNO₆'], 'Ba²⁺ needs two NO₃⁻ ions.', 'T');
+Q('ions', 2, 'What is the formula of zinc sulfate?', 'ZnSO₄', ['Zn₂SO₄', 'Zn(SO₄)₂', 'ZnS'], 'Zn²⁺ and SO₄²⁻ balance 1:1.', 'T');
+Q('ions', 1, 'What is the name of (NH₄)₂SO₄?', 'Ammonium sulfate', ['Ammonium sulfite', 'Nitrogen hydrogen sulfate', 'Ammonia sulfate'], 'NH₄⁺ is ammonium and SO₄²⁻ is sulfate.', 'T');
+Q('ions', 2, 'What is the name of Pb(NO₃)₂?', 'Lead(II) nitrate', ['Lead nitrite', 'Lead(I) nitrate', 'Lead dinitrate'], 'Two NO₃⁻ balance Pb²⁺, so it is lead(II) nitrate.', 'T');
+Q('ions', 2, 'What is the name of MnCl₂?', 'Manganese(II) chloride', ['Manganese chloride(I)', 'Manganese(IV) chloride', 'Manganese dichloride(II)'], 'Two Cl⁻ means Mn is 2+, so Roman numeral (II).', 'T');
+Q('ions', 2, 'What is the charge on iron in Fe₂O₃?', '3+', ['2+', '6+', '1+'], 'Three O²⁻ gives 6−. Two Fe must give 6+, so each is 3+, iron(III).', 'T');
+Q('ions', 1, 'What is the name of Al₂O₃?', 'Aluminum oxide', ['Aluminum trioxide', 'Dialuminum oxide', 'Aluminum oxygen'], 'Ionic compounds are named cation then anion, with no prefixes.', 'T');
+Q('ions', 2, 'What is the name for the compound NaOH?', 'Sodium hydroxide', ['Sodium hydride', 'Sodium oxide', 'Sodium hydrogen oxide'], 'Na⁺ is sodium and OH⁻ is hydroxide.', 'T');
+Q('ions', 1, 'What is the formula of phosphorus trichloride?', 'PCl₃', ['P₃Cl', 'PCl', 'P₃Cl₃'], 'The prefix tri- means three chlorine atoms. Covalent compounds use prefixes.', 'W');
+Q('ions', 1, 'What is the formula of carbon tetrahydride (methane)?', 'CH₄', ['C₄H', 'CH', 'C₄H₄'], 'Tetra- means four hydrogens.', 'W');
+Q('ions', 2, 'Which compound is ionic?', 'Ammonium chloride (NH₄Cl)', ['Phosphorus trichloride (PCl₃)', 'Hydrogen sulfide (H₂S)', 'Carbon tetrahydride (CH₄)'], 'NH₄Cl is made of NH₄⁺ and Cl⁻ ions. The other three are molecules of nonmetals sharing electrons.', 'W');
+Q('ions', 1, 'Is calcium sulfate (CaSO₄) ionic or covalent?', 'Ionic', ['Covalent', 'Metallic', 'Network covalent'], 'It contains a metal (Ca) and a polyatomic anion, so it is ionic. Inside SO₄²⁻ the bonds are covalent, but the compound overall is ionic.', 'W');
+Q('ions', 1, 'Is NH₃ ionic or covalent?', 'Covalent', ['Ionic', 'Metallic', 'Cannot tell'], 'N and H are both nonmetals, so they share electrons.', 'W');
+Q('ions', 1, 'Is H₂S ionic or covalent?', 'Covalent', ['Ionic', 'Metallic', 'Cannot tell'], 'Two nonmetals (H and S) share electrons.', 'W');
+
+/* ---------- ELECTRONEGATIVITY ---------- */
+Q('en', 1, 'A bond with a difference in electronegativity (ΔEN) less than 0.5 is…', 'non-polar covalent', ['polar covalent', 'ionic', 'metallic'], 'ΔEN < 0.5 non-polar covalent; 0.5 to 1.8 polar covalent; greater than 1.8 ionic.', 'F');
+Q('en', 1, 'A bond with ΔEN between 0.5 and 1.8 is…', 'polar covalent', ['non-polar covalent', 'ionic', 'metallic'], 'Electrons are shared unequally, creating partial charges δ+ and δ−.', 'F');
+Q('en', 1, 'A bond with ΔEN greater than 1.8 is usually…', 'ionic', ['non-polar covalent', 'polar covalent', 'metallic'], 'Such a large difference means one atom effectively takes the electron.', 'F');
+Q('en', 2, 'Complete the sentence: The bond between H–O is __(a)__ because __(b)__.   (H = 2.1, O = 3.5)', 'polar; 0.5 < ΔEN < 1.8', ['non-polar; ΔEN < 0.5', 'ionic; ΔEN > 1.8', 'polar; ΔEN > 1.8'], 'ΔEN = 3.5 − 2.1 = 1.4. That falls between 0.5 and 1.8, so the bond is polar covalent.', 'F');
+Q('en', 2, 'If an MgX compound has an electronegativity difference of 2.8 and Mg is 1.2, what is X?', 'F 4.0', ['Br 2.8', 'Cl 3.0', 'O 3.5'], 'X = 1.2 + 2.8 = 4.0, which is fluorine.', 'F');
+Q('en', 2, 'Which compound would have ΔEN = 2.1? (Na = 0.9, Cl = 3.0)', 'NaCl', ['Cl₂', 'HCl', 'Na metal'], '3.0 − 0.9 = 2.1, which is more than 1.8, so ionic.', 'X');
+Q('en', 1, 'What type of bond is Cl–Cl?', 'non-polar covalent', ['polar covalent', 'ionic', 'metallic'], 'Identical atoms have ΔEN = 0, so electrons are shared equally.', 'X');
+Q('en', 2, 'What type of bond is C–H? (C = 2.5, H = 2.1)', 'non-polar covalent', ['polar covalent', 'ionic', 'metallic'], 'ΔEN = 0.4, which is under 0.5. This is why C–H bonds are treated as non-polar.', 'T');
+Q('en', 2, 'What type of bond is N–H? (N = 3.0, H = 2.1)', 'polar covalent', ['non-polar covalent', 'ionic', 'metallic'], 'ΔEN = 0.9, between 0.5 and 1.8.', 'X');
+Q('en', 2, 'What type of bond is Mg–O? (Mg = 1.2, O = 3.5)', 'ionic', ['polar covalent', 'non-polar covalent', 'metallic'], 'ΔEN = 2.3, above 1.8. A metal bonded to a nonmetal is also a clue for ionic.', 'X');
+Q('en', 2, 'What type of bond is H–Cl? (H = 2.1, Cl = 3.0)', 'polar covalent', ['ionic', 'non-polar covalent', 'metallic'], 'ΔEN = 0.9.', 'X');
+Q('en', 2, 'What type of bond is C–O? (C = 2.5, O = 3.5)', 'polar covalent', ['non-polar covalent', 'ionic', 'metallic'], 'ΔEN = 1.0.', 'X');
+Q('en', 2, 'In an H–Cl bond, which atom carries the partial negative charge (δ−)?', 'Cl, because it is more electronegative', ['H, because it is smaller', 'Cl, because it is smaller', 'Neither, the sharing is equal'], 'Shared electrons are pulled toward the more electronegative atom.', 'X');
+Q('en', 2, 'Which bond is the MOST polar?', 'O–H', ['C–H', 'N–H', 'Cl–H'], 'ΔEN with H (2.1): C 0.4, Cl 0.9, N 0.9, O 1.4. Oxygen is the most electronegative of these.', 'X');
+Q('en', 2, 'Which element is the most electronegative?', 'F', ['O', 'Cl', 'N'], 'Electronegativity increases across a period and up a group, so fluorine is highest (4.0).', 'X');
+Q('en', 3, 'Arrange in INCREASING electronegativity: N, O, F, P, C, B', 'B < P < C < N < O < F', ['B < C < P < N < O < F', 'F < O < N < C < P < B', 'P < B < C < N < F < O'], 'B 2.0, P 2.1, C 2.5, N 3.0, O 3.5, F 4.0.', 'T');
+Q('en', 2, 'Across a period (left to right), electronegativity generally…', 'increases', ['decreases', 'stays the same', 'increases then decreases'], 'Greater nuclear charge pulls bonding electrons harder with the same number of shells.', 'X');
+Q('en', 2, 'Down a group, electronegativity generally…', 'decreases', ['increases', 'stays the same', 'doubles'], 'More electron shells put bonding electrons farther from the nucleus.', 'X');
+Q('en', 3, 'Which pair has the largest electronegativity difference?', 'Cl and F', ['Cl and Br', 'Si and Al', 'C and H'], 'Cl 3.0 / F 4.0 gives 1.0, versus Cl/Br 0.2, Si/Al 0.3, C/H 0.4.', 'T');
+Q('en', 2, 'Ca (1.0) bonds with Cl (3.0). The bond is…', 'ionic', ['non-polar covalent', 'polar covalent', 'metallic'], 'ΔEN = 2.0, which is greater than 1.8.', 'X');
+Q('en', 3, 'Si (1.8) bonds with Cl (3.0). The bond is…', 'polar covalent', ['ionic', 'non-polar covalent', 'metallic'], 'ΔEN = 1.2, between 0.5 and 1.8.', 'X');
+
+/* ---------- BONDING TYPES & PROPERTIES ---------- */
+Q('bonds', 1, 'A student wants a material that conducts electricity AND has delocalized electrons. Which substance fits?', 'Al', ['CH₄', 'N₂', 'PF₃'], 'Al is a metal. Metals have a sea of delocalized electrons. The others are covalent molecules.', 'F');
+Q('bonds', 1, 'Why do metals conduct electricity?', 'They contain delocalized (free-moving) electrons', ['They contain free ions in the solid', 'They have lone pairs', 'Their atoms share electrons in pairs'], 'Valence electrons move through the lattice of metal cations, carrying charge.', 'T');
+Q('bonds', 2, 'Why does a metallic structure conduct electricity but a covalently bonded structure does not?', 'Metals have free-moving electrons; covalent molecules have all electrons held in bonds or lone pairs', ['Metals have more protons', 'Covalent bonds are weaker', 'Covalent substances are always liquids'], 'Conductivity needs mobile charges. Metals have an electron sea. Simple covalent molecules have no free charges.', 'W');
+Q('bonds', 1, 'In a metallic bond, the cations are surrounded by…', 'a sea of delocalized electrons', ['shared electron pairs', 'negative ions', 'lone pairs only'], 'This electron sea holds the metal together and lets it conduct.', 'T');
+Q('bonds', 1, 'Which of these is a network covalent solid?', 'Diamond', ['NaCl', 'CH₄', 'Copper'], 'In diamond every carbon is covalently bonded to four others in a continuous 3D network.', 'T');
+Q('bonds', 2, 'Which is the best definition of a network covalent solid?', 'A continuous 3D network of atoms held together only by strong covalent bonds', ['Cations in a sea of electrons', 'Separate molecules held by weak forces', 'Oppositely charged ions in a lattice'], 'Examples: diamond and quartz (SiO₂).', 'W');
+Q('bonds', 2, 'Which is the best definition of an ionic lattice?', 'A rigid repeating 3D array of cations and anions held by strong electrostatic attraction', ['Atoms sharing pairs of electrons in molecules', 'A sea of electrons around cations', 'Molecules attracted by partial charges'], 'NaCl is the classic example with a cubic lattice.', 'W');
+Q('bonds', 1, 'Which substance has an ionic lattice?', 'NaCl', ['Diamond', 'CH₄', 'Al'], 'NaCl is made of Na⁺ and Cl⁻ ions arranged in a cubic lattice.', 'T');
+Q('bonds', 1, 'What force holds NaCl units together?', 'Electrostatic attraction between Na⁺ and Cl⁻ ions (ionic bond)', ['Sharing of electron pairs', 'London dispersion forces', 'A sea of electrons'], 'Opposite charges attract.', 'W');
+Q('bonds', 2, 'Which has stronger bonding overall, diamond or graphite?', 'Diamond, because every carbon forms four strong covalent bonds in all three dimensions', ['Graphite, because it is softer', 'They are identical', 'Graphite, because it conducts'], 'Graphite has layers held by weak forces, so it is soft and slippery. Diamond is a rigid 3D network.', 'W');
+Q('bonds', 3, 'Rank from strongest to weakest bonding: diamond, water, sulfur dihydride (H₂S), methane', 'Diamond > water > H₂S > methane', ['Water > diamond > H₂S > methane', 'Diamond > methane > H₂S > water', 'Methane > H₂S > water > diamond'], 'Diamond (network covalent) is strongest. Water has hydrogen bonds. H₂S has weaker dipole-dipole. Methane has only weak London forces.', 'W');
+Q('bonds', 2, 'Which substance would you expect to have the LOWEST boiling point?', 'Methane (gas)', ['Diamond (solid)', 'Glycerine (liquid)', 'Copper (solid)'], 'Methane has only weak London dispersion forces between molecules. The others have much stronger bonding.', 'W');
+Q('bonds', 2, 'What type of intermolecular bond connects two polar molecules?', 'dipole-dipole', ['metallic', 'covalent', 'London dispersion'], 'Positive end of one polar molecule attracts the negative end of another.', 'W');
+Q('bonds', 1, 'What is the difference between an intramolecular and an intermolecular force?', 'Intra acts within a molecule (covalent bond); inter acts between molecules', ['Intra acts between molecules; inter acts within one', 'They are the same thing', 'Intra only occurs in ionic compounds'], 'Example intra: the O–H covalent bond in water. Example inter: hydrogen bonds between water molecules.', 'W');
+Q('bonds', 2, 'When water boils, which attractions are overcome?', 'Intermolecular hydrogen bonds between molecules', ['The O–H covalent bonds inside molecules', 'The ionic bonds in water', 'The metallic bonds'], 'Boiling separates molecules but leaves each H₂O molecule intact.', 'X');
+Q('bonds', 2, 'Which solid conducts electricity when molten but not when solid?', 'Ionic compound (e.g. NaCl)', ['Metal', 'Diamond', 'Methane'], 'In the solid, ions are locked in place. When molten, they are free to move and carry charge.', 'X');
+Q('bonds', 2, 'Why are metals malleable (can be hammered into sheets)?', 'Layers of cations can slide past each other while the electron sea keeps holding them together', ['Their covalent bonds break and reform', 'They contain lone pairs', 'Their ions repel each other'], 'The bonding is non-directional, so layers slip without breaking the structure.', 'X');
+Q('bonds', 3, 'Which substance has the highest melting point?', 'Diamond', ['NaCl', 'Water', 'Methane'], 'A network covalent solid needs a huge amount of energy to break every covalent bond (about 3500°C).', 'X');
+Q('bonds', 1, 'What type of bond is shown when two atoms share a pair of electrons between them?', 'covalent', ['ionic', 'metallic', 'metalloid'], 'Sharing electron pairs is a covalent bond.', 'F');
+Q('bonds', 1, 'A bond forms by the transfer of electrons from a metal to a nonmetal. It is…', 'ionic', ['covalent', 'metallic', 'London'], 'Transfer creates oppositely charged ions that attract each other.', 'X');
+Q('bonds', 2, 'Which of these has delocalized electrons?', 'Mg', ['MgCl₂', 'CO₂', 'H₂O'], 'Only the metal element has a sea of delocalized valence electrons.', 'X');
+
+/* ---------- OCTET RULE & LEWIS STRUCTURES ---------- */
+M('lewis', 2, 'Which of the following can be exceptions to the octet rule? Select all that apply.', ['B', 'Be', 'P', 'S'], ['O', 'N'], 'B and Be can have fewer than 8 electrons (electron-deficient). P and S are in period 3 so they can have an expanded octet. O and N follow the octet rule in these examples.', 'F');
+Q('lewis', 1, 'Which two elements follow the duplet rule (only 2 electrons)?', 'H and He', ['Li and Be', 'B and C', 'N and O'], 'Their first shell holds only 2 electrons.', 'T');
+Q('lewis', 2, 'Which molecule is electron-deficient (fewer than 8 electrons on the central atom)?', 'BF₃', ['CH₄', 'NH₃', 'H₂O'], 'Boron in BF₃ has only 6 electrons around it.', 'T');
+Q('lewis', 2, 'In BeCl₂ how many electrons surround Be?', '4', ['2', '6', '8'], 'Be forms two single bonds, so it has 2 × 2 = 4 electrons around it.', 'T');
+Q('lewis', 2, 'In BH₃ or BF₃, how many electrons surround boron?', '6', ['4', '8', '10'], 'Three bonds × 2 electrons each = 6.', 'T');
+Q('lewis', 2, 'Which atoms can have an EXPANDED octet (more than 8 electrons)?', 'Nonmetals in period 3 or below, such as P and S', ['Any element in period 2', 'Only noble gases', 'Only metals'], 'Period 3 and below have d orbitals available. Period 2 elements cannot exceed 8.', 'T');
+Q('lewis', 2, 'Which molecule has an expanded octet on the central atom?', 'SF₆', ['CH₄', 'NH₃', 'BF₃'], 'Sulfur has 12 electrons around it in SF₆.', 'T');
+Q('lewis', 2, 'Period 2 nonmetals with fewer than 4 valence electrons (like B) tend to show…', 'electron deficiency', ['expanded octets', 'duplets', 'metallic bonding'], 'They form compounds with fewer than 8 electrons around them.', 'T');
+Q('lewis', 1, 'How many total valence electrons does CH₄ have?', '8', ['4', '6', '10'], 'C has 4, plus 4 H × 1 = 8.', 'W');
+val('NH₃', 8, 1, 'N has 5, plus 3 H × 1 = 8.', 'W');
+val('H₂O', 8, 1, 'O has 6, plus 2 H × 1 = 8.', 'X');
+val('CO₂', 16, 1, 'C 4 + 2 × O 6 = 16.', 'X');
+val('SO₂', 18, 2, 'S 6 + 2 × O 6 = 18.', 'X');
+val('CH₂O', 12, 2, 'C 4 + 2 × H 1 + O 6 = 12.', 'W');
+val('CH₂Cl₂', 20, 2, 'C 4 + 2 H 2 + 2 Cl 14 = 20.', 'W');
+val('PCl₃', 26, 2, 'P 5 + 3 × Cl 7 = 26.', 'W');
+val('PCl₅', 40, 2, 'P 5 + 5 × Cl 7 = 40.', 'W');
+val('PH₃', 8, 1, 'P 5 + 3 × H 1 = 8.', 'W');
+val('BrF₃', 28, 2, 'Br 7 + 3 × F 7 = 28.', 'W');
+val('SF₄', 34, 2, 'S 6 + 4 × F 7 = 34.', 'X');
+val('XeF₄', 36, 3, 'Xe 8 + 4 × F 7 = 36.', 'X');
+val('SF₆', 48, 2, 'S 6 + 6 × F 7 = 48.', 'X');
+val('ClO₄⁻', 32, 3, 'Cl 7 + 4 × O 6 = 31, plus 1 for the negative charge = 32.', 'W');
+val('NO₃⁻', 24, 3, 'N 5 + 3 × O 6 = 23, plus 1 for the charge = 24.', 'W');
+val('CO₃²⁻', 24, 3, 'C 4 + 3 × O 6 = 22, plus 2 for the charge = 24.', 'T');
+val('SO₄²⁻', 32, 3, 'S 6 + 4 × O 6 = 30, plus 2 = 32.', 'T');
+val('NH₄⁺', 8, 3, 'N 5 + 4 × H 1 = 9, minus 1 for the positive charge = 8.', 'W');
+val('H₃O⁺', 8, 3, '3 H = 3, O = 6, total 9, minus 1 = 8.', 'X');
+val('NHO₂ (H bonded to O)', 18, 3, 'N 5 + H 1 + 2 × O 6 = 18.', 'W');
+val('H₃NOH⁺ (H₄NO⁺)', 14, 3, '4 H = 4, N 5, O 6 = 15, minus 1 for the + charge = 14.', 'W');
+bonded('CH₄', 4, 1, 'Four H atoms.', 'W');
+bonded('NH₃', 3, 1, 'Three H atoms.', 'W');
+bonded('H₂O', 2, 1, 'Two H atoms.', 'X');
+bonded('ClO₄⁻', 4, 2, 'Four oxygen atoms around Cl.', 'W');
+bonded('NO₃⁻', 3, 2, 'Three oxygen atoms.', 'W');
+bonded('PCl₅', 5, 2, 'Five Cl atoms.', 'W');
+bonded('BrF₃', 3, 2, 'Three F atoms.', 'W');
+bonded('CH₂O', 3, 2, 'Two H and one O.', 'W');
+bonded('SF₆', 6, 2, 'Six F atoms.', 'X');
+bonded('XeF₄', 4, 2, 'Four F atoms.', 'X');
+lp('CH₄', 0, 1, 'All 8 electrons are in four bonds.', 'W');
+lp('NH₃', 1, 1, 'N has 5 valence electrons: 3 in bonds and 2 as a lone pair.', 'W');
+lp('H₂O', 2, 1, 'O has 6 valence electrons: 2 in bonds, 4 as two lone pairs.', 'X');
+lp('PCl₃', 1, 2, 'P has 5 valence electrons: 3 in bonds, 2 as a lone pair.', 'W');
+lp('PH₃', 1, 2, 'Same electron count as NH₃.', 'W');
+lp('PCl₅', 0, 2, 'All five valence electrons of P are in five bonds.', 'W');
+lp('BrF₃', 2, 2, 'Br has 7 valence electrons: 3 in bonds, 4 as two lone pairs.', 'W');
+lp('SF₄', 1, 2, 'S has 6 valence electrons: 4 in bonds, 2 as one lone pair.', 'X');
+lp('ClF₃', 2, 2, 'Cl: 7 valence electrons, 3 bonds, 2 lone pairs.', 'T');
+lp('XeF₂', 3, 3, 'Xe has 8 valence electrons: 2 in bonds, 6 as three lone pairs.', 'X');
+lp('XeF₄', 2, 3, 'Xe: 8 valence electrons, 4 in bonds, 4 as two lone pairs.', 'X');
+lp('ClO₄⁻', 0, 2, 'Cl forms four bonds to O and keeps no lone pair on the central atom.', 'W');
+lp('NO₃⁻', 0, 2, 'N has three bonds (one double, two single) and no lone pairs.', 'W');
+lp('CH₂O', 0, 2, 'C has two C–H bonds and one C=O double bond, no lone pairs.', 'W');
+lp('SO₂', 1, 2, 'S has two bonds to O and one lone pair.', 'T');
+lp('CO₂', 0, 1, 'C has two double bonds and no lone pairs.', 'T');
+Q('lewis', 2, 'Which molecule contains a double bond?', 'SO₂', ['NF₃', 'CH₄', 'OF₂'], 'If the central atom is single and the other atoms are monovalent (like H, F), there are only single bonds. SO₂ has O atoms that can double bond.', 'T');
+M('lewis', 2, 'Select ALL the molecules that have at least one double bond.', ['NO₂', 'CO₂'], ['PCl₃', 'NH₃', 'ClF₃'], 'PCl₃, NH₃ and ClF₃ have a central atom bonded only to monovalent atoms, so only single bonds. NO₂ and CO₂ need double bonds to complete the octet.', 'T');
+Q('lewis', 1, 'Which molecule contains a triple bond?', 'N₂', ['Cl₂', 'H₂', 'F₂'], 'Each N has 5 valence electrons and needs 3 more, so N≡N.', 'T');
+Q('lewis', 1, 'How many lone pairs does each nitrogen atom have in N₂?', '1', ['0', '2', '3'], 'Each N has 5 valence electrons: 3 in the triple bond and 2 as a lone pair.', 'T');
+Q('lewis', 2, 'How is an ionic compound like CaSO₄ drawn as a Lewis structure?', 'Ca²⁺ and [SO₄]²⁻ drawn separately, with the polyatomic ion in brackets', ['Ca bonded to S by a single line', 'All atoms joined with covalent bonds', 'Ca²⁺ drawn inside the brackets with sulfate'], 'The metal gives up electrons and appears as a cation. The polyatomic ion keeps its own covalent bonds and is shown in brackets with its charge.', 'T');
+Q('lewis', 1, 'A Lewis structure for a polyatomic ion such as SO₄²⁻ should be placed…', 'inside square brackets with the charge written outside', ['without brackets or charge', 'with the charge inside the structure', 'only as a chemical formula'], 'Brackets show the charge belongs to the whole ion.', 'T');
+Q('lewis', 3, 'In the Lewis structure of CO₃²⁻ (one resonance form), how many lone pairs are on the oxygen atoms in total?', '8', ['6', '7', '9'], 'The double-bonded O has 2 lone pairs. Each single-bonded O has 3 lone pairs: 2 + 3 + 3 = 8.', 'T');
+Q('lewis', 3, 'In CO₃²⁻ the three C–O bonds are…', 'one double and two single in any one drawing, but all equal in reality (resonance)', ['all single bonds', 'all double bonds', 'two double and one single'], 'The real ion has three equivalent bonds from delocalized electrons. Each Lewis drawing is one resonance form.', 'T');
+Q('lewis', 3, 'Why is the Lewis structure of SO₄²⁻ often drawn with S=O double bonds?', 'Sulfur can expand its octet, which lowers formal charges', ['Oxygen cannot form single bonds', 'The octet rule forces it', 'Sulfur has only 4 valence electrons'], 'Period 3 sulfur can hold more than 8 electrons.', 'T');
+Q('lewis', 3, 'In the Lewis structure of H₃NOH⁺ (basic skeleton H₃N–O–H), what is true about N?', 'N has 4 bonds and no lone pair', ['N has 3 bonds and one lone pair', 'N has 2 bonds and 2 lone pairs', 'N has 5 bonds'], 'N is bonded to 3 H and 1 O, using all 4 pairs. Its charge is 1+, so it carries the + charge.', 'W');
+Q('lewis', 3, 'In NHO₂ (H bonded to O, N central), N is bonded to…', 'one O by a single bond and the other O by a double bond', ['two H atoms', 'two O atoms by triple bonds', 'only one atom'], 'Skeleton O–N=O with H on one O. 18 electrons: N keeps one lone pair, and the bent shape results.', 'W');
+Q('lewis', 1, 'In the electron dot picture of CH₄, how many dots/bonds surround carbon?', '4 bonding pairs, no lone pair', ['3 bonding pairs, 1 lone pair', '2 bonding pairs, 2 lone pairs', '4 bonding pairs, 1 lone pair'], 'C: 4 valence electrons, each forming one bond to H.', 'W');
+Q('lewis', 2, 'In the Lewis structure of NH₄⁺, the ion is…', 'drawn in brackets with a + charge; N has four bonds and no lone pair', ['drawn with N having a lone pair', 'neutral', 'drawn with N=H double bond'], 'N shares all 4 pairs with H. The lone pair of NH₃ is used to bond H⁺.', 'W');
+
+/* ---------- VSEPR ---------- */
+Q('vsepr', 2, 'Predict the shape and bond angle of water (H₂O) using VSEPR.', 'Bent, about 104.5° (less than 109.5°)', ['Linear, 180°', 'Trigonal planar, 120°', 'Tetrahedral, 109.5°'], 'Oxygen has 2 bonding pairs and 2 lone pairs, so electron geometry is tetrahedral but the shape is bent. Lone pairs push the bonded atoms closer together.', 'X');
+Q('vsepr', 2, 'What is the role of lone pairs in determining the shape of water?', 'They occupy space and repel bond pairs more strongly, squeezing the H–O–H angle below 109.5°', ['They have no effect on the shape', 'They increase the bond angle to 120°', 'They convert the molecule to linear'], 'Lone pair–bond pair repulsion is stronger than bond pair–bond pair repulsion.', 'X');
+Q('vsepr', 3, 'Which order of repulsion strength is correct?', 'lone pair–lone pair > lone pair–bond pair > bond pair–bond pair', ['bond pair–bond pair > lone pair–bond pair > lone pair–lone pair', 'lone pair–bond pair > lone pair–lone pair > bond pair–bond pair', 'all are equal'], 'Lone pairs are held by only one nucleus so they spread out more.', 'X');
+Q('vsepr', 2, 'Why is the bond angle in NH₃ (107°) smaller than the regular tetrahedral angle (109.5°)?', 'The lone pair on N repels the bonding pairs more strongly and compresses the H–N–H angle', ['N is larger than H', 'NH₃ has double bonds', 'There are no lone pairs in NH₃'], 'Four electron pairs (tetrahedral arrangement) but one is a lone pair, so the three bonds are pushed closer.', 'X');
+Q('vsepr', 2, 'Arrange in DECREASING bond angle: CH₄, NH₃, H₂O', 'CH₄ > NH₃ > H₂O', ['H₂O > NH₃ > CH₄', 'NH₃ > CH₄ > H₂O', 'CH₄ > H₂O > NH₃'], 'CH₄ 109.5° (no lone pairs), NH₃ 107° (one lone pair), H₂O 104.5° (two lone pairs). More lone pairs, smaller angle.', 'X');
+Q('vsepr', 2, 'Explain the geometry of SF₄.', 'Seesaw: 4 bonds + 1 lone pair on a trigonal-bipyramidal arrangement', ['Tetrahedral: 4 bonds, no lone pair', 'Square planar', 'T-shaped'], 'S has 5 electron groups (4 bonds + 1 lone pair), so electron geometry is trigonal bipyramidal and the shape is seesaw.', 'X');
+Q('vsepr', 3, 'In SF₄ where does the lone pair sit?', 'In an equatorial position', ['In an axial position', 'On a fluorine atom', 'It has no preferred position'], 'Equatorial positions have only two 90° neighbours, so there is less repulsion than in axial positions.', 'X');
+Q('vsepr', 3, 'In XeF₄ the two lone pairs sit…', 'on opposite sides (above and below) of the plane, giving a square planar shape', ['next to each other in the same plane', 'on the fluorine atoms', 'both on one side'], 'Placing them at 180° from each other minimizes repulsion.', 'X');
+Q('vsepr', 2, 'Determine the shape of XeF₄ and the hybridization of Xe.', 'Square planar; sp³d²', ['Tetrahedral; sp³', 'Seesaw; sp³d', 'Square pyramidal; sp³d²'], 'Xe has 4 bonds + 2 lone pairs = 6 groups, octahedral electron arrangement, sp³d², and the shape is square planar.', 'X');
+Q('vsepr', 2, 'What does VSEPR theory say about electron pairs around a central atom?', 'They repel each other and arrange to be as far apart as possible', ['They attract each other', 'They all lie in one plane', 'They are always in bonds'], 'The molecular shape follows from minimizing repulsion.', 'X');
+geo('H₂O', 'Bent', 1, '2 bonded atoms + 2 lone pairs (AX₂E₂) gives bent with a bond angle under 109.5°.', 'T');
+geo('SCl₂', 'Bent', 2, 'S has 2 bonds + 2 lone pairs, AX₂E₂.', 'T');
+geo('SO₂', 'Bent', 2, 'S has 2 bonded atoms + 1 lone pair, AX₂E, bond angle under 120°.', 'T');
+geo('SF₂', 'Bent', 2, 'S: 2 bonds + 2 lone pairs, AX₂E₂.', 'F');
+geo('CO₂', 'Linear', 1, 'C has 2 bonded atoms and no lone pairs, AX₂.', 'T');
+geo('BeCl₂', 'Linear', 1, 'Be has 2 bonded atoms and no lone pairs.', 'T');
+geo('BF₃', 'Trigonal planar', 1, '3 bonded atoms, no lone pairs: AX₃, 120°.', 'T');
+geo('NO₃⁻ (nitrate)', 'Trigonal planar', 2, 'N has 3 bonded atoms, no lone pairs.', 'T');
+geo('CH₂O', 'Trigonal planar', 2, 'C has 3 bonded atoms and no lone pairs, bond angle about 120°.', 'W');
+geo('CH₄', 'Tetrahedral', 1, '4 bonded atoms, no lone pairs, 109.5°.', 'T');
+geo('CCl₄', 'Tetrahedral', 1, 'Carbon bonded to 4 chlorine atoms, no lone pairs.', 'X');
+geo('NH₄⁺', 'Tetrahedral', 1, '4 bonded atoms around N, no lone pairs.', 'T');
+geo('ClO₄⁻', 'Tetrahedral', 2, 'Cl has 4 bonded oxygens and no lone pairs.', 'W');
+geo('CH₂Cl₂', 'Tetrahedral', 2, 'C has 4 bonded atoms and no lone pairs, 109.5°.', 'W');
+geo('NH₃', 'Trigonal pyramidal', 1, '3 bonded atoms + 1 lone pair, AX₃E.', 'T');
+geo('PCl₃', 'Trigonal pyramidal', 2, '3 bonded atoms + 1 lone pair.', 'W');
+geo('PH₃', 'Trigonal pyramidal', 2, '3 bonded atoms + 1 lone pair.', 'W');
+geo('NF₃', 'Trigonal pyramidal', 2, '3 bonded atoms + 1 lone pair.', 'X');
+geo('ClO₃⁻', 'Trigonal pyramidal', 3, 'Cl has 3 bonded O and 1 lone pair.', 'T');
+geo('phosphite (PO₃³⁻)', 'Trigonal pyramidal', 3, 'P has 3 bonded O and 1 lone pair, like SO₃²⁻.', 'F');
+geo('XeO₃', 'Trigonal pyramidal', 3, 'Xe has 3 bonded O + 1 lone pair, so the electron geometry is tetrahedral and the shape trigonal pyramidal.', 'X');
+geo('H₃O⁺', 'Trigonal pyramidal', 3, 'O has 3 bonds + 1 lone pair.', 'X');
+geo('PCl₅', 'Trigonal bipyramidal', 2, '5 bonded atoms, no lone pairs, AX₅, angles 90° and 120°.', 'T');
+geo('SF₄', 'Seesaw', 2, 'AX₄E.', 'T');
+geo('ClF₃', 'T-shaped', 2, '3 bonded atoms + 2 lone pairs, AX₃E₂.', 'T');
+geo('BrF₃', 'T-shaped', 2, 'AX₃E₂: 3 bonds and 2 lone pairs.', 'W');
+geo('XeF₂', 'Linear', 3, 'AX₂E₃: three lone pairs sit around the middle, leaving F–Xe–F at 180°.', 'T');
+geo('I₃⁻', 'Linear', 3, 'AX₂E₃, 180°.', 'T');
+geo('SF₆', 'Octahedral', 1, '6 bonded atoms, no lone pairs, 90°.', 'T');
+geo('BrF₅', 'Square pyramidal', 3, 'AX₅E: 5 bonds + 1 lone pair.', 'T');
+geo('XeF₄', 'Square planar', 3, 'AX₄E₂: 4 bonds + 2 lone pairs.', 'T');
+egeo('ClF₃', 'Trigonal bipyramidal', 2, 'ClF₃ has 3 bonds + 2 lone pairs = 5 groups. The molecular shape is T-shaped but the electron geometry is trigonal bipyramidal.', 'T');
+egeo('NH₃', 'Tetrahedral', 2, '3 bonds + 1 lone pair = 4 groups, tetrahedral arrangement.', 'T');
+egeo('H₂O', 'Tetrahedral', 2, '2 bonds + 2 lone pairs = 4 groups.', 'T');
+egeo('XeO₃', 'Tetrahedral', 3, '3 bonds + 1 lone pair = 4 groups.', 'X');
+egeo('PH₃', 'Tetrahedral', 2, '3 bonds + 1 lone pair = 4 groups.', 'X');
+egeo('SF₄', 'Trigonal bipyramidal', 3, '4 bonds + 1 lone pair = 5 groups.', 'T');
+egeo('SO₂', 'Trigonal planar', 3, '2 bonded atoms + 1 lone pair = 3 groups.', 'T');
+egeo('CO₂', 'Linear', 1, '2 groups, linear.', 'T');
+egeo('SF₆', 'Octahedral', 2, '6 groups around S.', 'T');
+egeo('XeF₄', 'Octahedral', 3, '4 bonds + 2 lone pairs = 6 groups.', 'T');
+egeo('PCl₅', 'Trigonal bipyramidal', 2, '5 groups around P.', 'T');
+egeo('CCl₄', 'Tetrahedral', 1, '4 groups around C.', 'T');
+Q('vsepr', 2, 'A central atom has 3 bonded atoms and 1 lone pair. What is the electron geometry and molecular geometry?', 'Tetrahedral and trigonal pyramidal', ['Trigonal planar and bent', 'Tetrahedral and tetrahedral', 'Trigonal pyramidal and tetrahedral'], 'Total groups = 4 (tetrahedral arrangement). The lone pair is not part of the shape, leaving a pyramid.', 'T');
+Q('vsepr', 2, 'A central atom has 2 bonded atoms and 2 lone pairs. What is the molecular shape?', 'Bent', ['Linear', 'Trigonal planar', 'Tetrahedral'], 'AX₂E₂ is bent with an angle under 109.5°.', 'T');
+Q('vsepr', 2, 'A central atom has 4 bonded atoms and 2 lone pairs. What is the molecular shape?', 'Square planar', ['Seesaw', 'Octahedral', 'Tetrahedral'], 'AX₄E₂ has 6 groups, octahedral electron geometry, and a flat square shape.', 'T');
+Q('vsepr', 2, 'A central atom has 5 bonded atoms and 1 lone pair. What is the molecular shape?', 'Square pyramidal', ['Trigonal bipyramidal', 'Octahedral', 'Seesaw'], 'AX₅E.', 'T');
+Q('vsepr', 2, 'A central atom has 2 bonded atoms and 3 lone pairs. What is the molecular shape?', 'Linear', ['Bent', 'T-shaped', 'Seesaw'], 'AX₂E₃ lone pairs lie in the equatorial plane, bonds are axial at 180°.', 'T');
+Q('vsepr', 2, 'A central atom has 3 bonded atoms and 2 lone pairs. What is the molecular shape?', 'T-shaped', ['Trigonal planar', 'Bent', 'Trigonal pyramidal'], 'AX₃E₂.', 'T');
+Q('vsepr', 3, 'A central atom has 2 bonded atoms and 1 lone pair. What is the shape and approximate angle?', 'Bent, less than 120°', ['Linear, 180°', 'Trigonal planar, 120°', 'Bent, less than 109.5°'], 'Three groups (trigonal planar arrangement) with one lone pair. Compare AX₂E₂ which is under 109.5°.', 'T');
+ang('CH₄', '109.5°', ['90°', '107°', '120°'], 1, 'Perfect tetrahedral.', 'T');
+ang('BF₃', '120°', ['90°', '109.5°', '180°'], 1, 'Trigonal planar.', 'T');
+ang('CO₂', '180°', ['90°', '120°', '109.5°'], 1, 'Linear.', 'T');
+ang('SF₆', '90°', ['109.5°', '120°', '180°'], 2, 'Octahedral, adjacent bonds at 90°.', 'T');
+ang('NH₃', '107°', ['109.5°', '120°', '90°'], 2, 'Lone pair compresses the angle below 109.5°.', 'F');
+ang('H₂O', '104.5°', ['109.5°', '120°', '90°'], 2, 'Two lone pairs compress it more than in NH₃.', 'T');
+ang('PCl₅ (between two equatorial bonds)', '120°', ['90°', '109.5°', '180°'], 3, 'In trigonal bipyramidal geometry the equatorial bonds are 120° apart and axial–equatorial are 90°.', 'W');
+ang('PCl₅ (between an axial and an equatorial bond)', '90°', ['120°', '109.5°', '180°'], 3, 'Axial positions are 90° from the equatorial plane.', 'W');
+ang('ClF₃ (T-shaped)', 'less than 90°', ['120°', '109.5°', '180°'], 3, 'Lone pairs in the equatorial plane squeeze the F–Cl–F angles below 90°.', 'T');
+ang('XeF₄', '90° and 180°', ['109.5° only', '120° only', '90° and 120°'], 3, 'Square planar: adjacent F at 90°, opposite F at 180°.', 'T');
+hyb('CO₂', 'sp', 1, 'Two groups = sp.', 'T');
+hyb('BeCl₂', 'sp', 2, 'Two groups = sp.', 'T');
+hyb('BF₃', 'sp²', 2, 'Three groups = sp².', 'T');
+hyb('SO₂', 'sp²', 2, 'Three groups (2 bonds + 1 lone pair) = sp².', 'T');
+hyb('CH₄', 'sp³', 1, 'Four groups = sp³.', 'T');
+hyb('NH₃', 'sp³', 1, 'Four groups (3 bonds + 1 lone pair) = sp³.', 'T');
+hyb('H₂O', 'sp³', 1, 'Four groups (2 bonds + 2 lone pairs) = sp³.', 'T');
+hyb('PCl₅', 'sp³d', 2, 'Five groups = sp³d.', 'T');
+hyb('SF₄', 'sp³d', 2, 'Five groups (4 bonds + 1 lone pair) = sp³d.', 'T');
+hyb('ClF₃', 'sp³d', 2, 'Five groups = sp³d.', 'T');
+hyb('SF₆', 'sp³d²', 2, 'Six groups = sp³d².', 'T');
+hyb('XeF₄', 'sp³d²', 3, 'Six groups = sp³d².', 'T');
+Q('vsepr', 2, 'Match the number of electron groups (steric number) to hybridization: 4 groups is…', 'sp³', ['sp', 'sp²', 'sp³d'], '2 = sp, 3 = sp², 4 = sp³, 5 = sp³d, 6 = sp³d².', 'T');
+Q('vsepr', 2, 'Using X = ½[V + M − C + A] (V = valence electrons of the central atom, M = monovalent atoms, C = cation charge, A = anion charge), what is X for CH₄?', '4', ['2', '3', '8'], 'X = ½[4 + 4 − 0 + 0] = 4, so sp³.', 'T');
+Q('vsepr', 2, 'Using X = ½[V + M − C + A], what is X for NH₃ (V = 5, M = 3)?', '4', ['3', '5', '8'], 'X = ½[5 + 3] = 4, so sp³.', 'T');
+Q('vsepr', 3, 'Using X = ½[V + M − C + A], what is X for PCl₅ (V = 5, M = 5)?', '5', ['4', '6', '10'], 'X = ½[5 + 5] = 5, so sp³d.', 'T');
+Q('vsepr', 3, 'Using X = ½[V + M − C + A], what is X for SF₆ (V = 6, M = 6)?', '6', ['5', '4', '12'], 'X = ½[6 + 6] = 6, so sp³d².', 'T');
+Q('vsepr', 3, 'Using X = ½[V + M − C + A], what is X for NH₄⁺ (V = 5, M = 4, C = 1)?', '4', ['5', '3', '8'], 'X = ½[5 + 4 − 1] = 4.', 'T');
+Q('vsepr', 3, 'Using X = ½[V + M − C + A], what is X for SF₄ (V = 6, M = 4)?', '5', ['4', '6', '3'], 'X = ½[6 + 4] = 5, so sp³d.', 'T');
+Q('vsepr', 3, 'Using X = ½[V + M − C + A], what is X for XeF₂ (V = 8, M = 2)?', '5', ['2', '3', '4'], 'X = ½[8 + 2] = 5. With 2 bonds, 3 lone pairs, the shape is linear.', 'T');
+M('vsepr', 2, 'Select ALL molecules with a BENT molecular geometry.', ['SF₂', 'Dihydrogen monoxide (H₂O)'], ['Boron trifluoride', 'CH₄', 'NH₃'], 'SF₂ and H₂O have 2 bonds and 2 lone pairs (AX₂E₂). BF₃ is trigonal planar, CH₄ tetrahedral, NH₃ trigonal pyramidal.', 'F');
+M('vsepr', 2, 'Select ALL species with TRIGONAL PYRAMIDAL geometry.', ['NH₃', 'Phosphite (PO₃³⁻)'], ['CH₄', 'Nitrate (NO₃⁻)', 'Carbon tetrafluoride'], 'NH₃ and PO₃³⁻ each have 3 bonds and 1 lone pair.', 'F');
+M('vsepr', 2, 'Select ALL species with TETRAHEDRAL geometry.', ['CH₄', 'Carbon tetrafluoride (CF₄)'], ['NH₃', 'Boron trifluoride', 'SF₂'], 'Both have 4 bonded atoms and no lone pairs on the central atom.', 'F');
+M('vsepr', 2, 'Select ALL species with TRIGONAL PLANAR geometry.', ['Boron trifluoride (BF₃)', 'Nitrate (NO₃⁻)'], ['NH₃', 'SF₂', 'CH₄'], 'Three bonded atoms and no lone pairs on the central atom.', 'F');
+M('vsepr', 3, 'Select ALL species with a total of four electron groups (tetrahedral electron geometry).', ['H₂O', 'NH₃', 'CH₄'], ['BF₃', 'CO₂'], 'H₂O (2+2), NH₃ (3+1) and CH₄ (4+0) each have 4 groups. BF₃ has 3 and CO₂ has 2.', 'T');
+Q('vsepr', 2, 'Why is bent molecular geometry (AX₂E or AX₂E₂) always polar?', 'The bond dipoles cannot cancel because the molecule is not symmetrical', ['It has no polar bonds', 'It has no lone pairs', 'It is linear'], 'The bend means the dipoles add rather than cancel.', 'T');
+
+/* ---------- POLARITY ---------- */
+Q('polar', 2, 'A molecule is polar when…', 'its bond dipoles do not cancel because the shape is asymmetric', ['it contains any covalent bond', 'it has an even number of atoms', 'it has no lone pairs'], 'Polarity depends on both bond polarity and shape.', 'T');
+Q('polar', 2, 'Which molecule is NON-POLAR?', 'CH₄', ['NH₃', 'H₂O', 'PCl₃'], 'CH₄ is symmetrical tetrahedral with identical C–H bonds so dipoles cancel.', 'T');
+Q('polar', 2, 'Which molecule is POLAR?', 'CH₃Cl', ['CH₄', 'CO₂', 'CCl₄'], 'The C–Cl bond differs from C–H, so the dipoles do not cancel. In the tutor notes, replacing one H by Cl makes the tetrahedral molecule polar.', 'T');
+M('polar', 2, 'Select ALL polar molecules.', ['NH₃', 'H₂O', 'SO₂'], ['CO₂', 'CH₄'], 'NH₃ (pyramidal), H₂O and SO₂ (bent) are asymmetric. CO₂ is linear and CH₄ tetrahedral with matching atoms, so they cancel.', 'T');
+M('polar', 2, 'Select ALL non-polar molecules.', ['CO₂', 'BF₃', 'CCl₄'], ['H₂O', 'NH₃'], 'Symmetrical shapes with identical outer atoms cancel their dipoles.', 'T');
+Q('polar', 2, 'Is CH₂Cl₂ polar or non-polar?', 'Polar', ['Non-polar', 'Ionic', 'Cannot be determined'], 'It is tetrahedral but H and Cl are different atoms, so the C–Cl and C–H dipoles do not cancel.', 'W');
+Q('polar', 2, 'Is CH₂O (methanal) polar or non-polar?', 'Polar', ['Non-polar', 'Ionic', 'Metallic'], 'The C=O bond is strongly polar and the C–H bonds are not, so the trigonal planar molecule has a net dipole. This is why methanal has dipole-dipole forces.', 'W');
+Q('polar', 2, 'Is PCl₃ polar or non-polar?', 'Polar', ['Non-polar', 'Ionic', 'Metallic'], 'It is trigonal pyramidal with a lone pair on P, so dipoles do not cancel.', 'W');
+Q('polar', 2, 'Is PH₃ polar or non-polar?', 'Polar', ['Non-polar', 'Ionic', 'Metallic'], 'Trigonal pyramidal with a lone pair, so asymmetrical (the tutor marks it polar even though P–H is a low-polarity bond).', 'T');
+Q('polar', 2, 'Is PCl₅ polar or non-polar?', 'Non-polar', ['Polar', 'Ionic', 'Metallic'], 'Trigonal bipyramidal with five identical bonds and no lone pair is symmetric.', 'W');
+Q('polar', 3, 'Is BrF₃ polar or non-polar?', 'Polar', ['Non-polar', 'Ionic', 'Metallic'], 'T-shaped with two lone pairs, asymmetric.', 'W');
+Q('polar', 3, 'Is SF₄ polar or non-polar?', 'Polar', ['Non-polar', 'Ionic', 'Metallic'], 'Seesaw is asymmetric.', 'X');
+Q('polar', 3, 'XeF₂ and XeF₄ have lone pairs on the central atom but are non-polar. Why?', 'Their shapes (linear and square planar) are symmetrical so the dipoles cancel', ['Xe–F bonds are non-polar', 'Noble gases cannot form dipoles', 'The lone pairs cancel the bonds'], 'Lone pairs make a molecule polar only if they destroy the symmetry.', 'X');
+Q('polar', 2, 'Is SF₆ polar or non-polar?', 'Non-polar', ['Polar', 'Ionic', 'Metallic'], 'Octahedral with six identical bonds.', 'X');
+Q('polar', 2, 'Is ClO₄⁻ polar or non-polar (bond arrangement)?', 'Non-polar (symmetrical tetrahedral)', ['Polar (tetrahedral with a lone pair)', 'Polar (trigonal planar)', 'Ionic'], 'Four identical Cl–O bonds arranged tetrahedrally cancel out. The worksheet answer is non-polar.', 'W');
+Q('polar', 1, 'Which is true of a polar molecule?', 'It has a partially positive end and a partially negative end', ['It has no charge at all', 'It is always an ion', 'It is always linear'], 'The dipole is the separation of charge.', 'T');
+Q('polar', 2, 'The tutor rule of thumb says a molecule is polar when…', 'the central atom has lone pairs (asymmetric) OR the atoms around it are different', ['it contains hydrogen', 'it contains only one element', 'its central atom is carbon'], 'Exceptions: symmetric lone-pair cases such as XeF₂ and XeF₄ are non-polar.', 'T');
+Q('polar', 3, 'Which molecule has polar bonds but is a NON-POLAR molecule?', 'CO₂', ['H₂O', 'NH₃', 'HCl'], 'The two C=O dipoles point in opposite directions and cancel.', 'T');
+
+/* ---------- INTERMOLECULAR FORCES ---------- */
+Q('imf', 1, 'What type of intermolecular force is produced by a random (temporary) dipole moment?', 'London dispersion', ['Hydrogen bonding', 'Metallic bonding', 'Dipole-dipole'], 'Electrons moving randomly create short-lived dipoles that induce dipoles in neighbours.', 'W');
+Q('imf', 2, 'Order from WEAKEST to STRONGEST: dipole-dipole, London dispersion, ionic, hydrogen bonding', 'London dispersion < dipole-dipole < hydrogen bonding < ionic', ['Dipole-dipole < London < hydrogen bonding < ionic', 'London < hydrogen bonding < dipole-dipole < ionic', 'Ionic < hydrogen bonding < dipole-dipole < London'], 'Tutor notes: Ionic > hydrogen bond > dipole-dipole > London.', 'W');
+Q('imf', 1, 'Which is the weakest intermolecular force?', 'London dispersion', ['Dipole-dipole', 'Hydrogen bonding', 'Ionic'], 'It exists between all molecules but is only weak.', 'T');
+Q('imf', 1, 'Which attraction exists between non-polar molecules?', 'London dispersion', ['Hydrogen bonding', 'Dipole-dipole', 'Ionic'], 'Non-polar to non-polar molecules attract only through London forces.', 'T');
+Q('imf', 2, 'Hydrogen bonding requires hydrogen to be directly bonded to…', 'F, O or N', ['C, Cl or S', 'any nonmetal', 'only carbon'], 'Remember FON. The very polar bond lets H attract a lone pair on a neighbouring molecule.', 'T');
+M('imf', 2, 'Select ALL molecules that can form hydrogen bonds with each other.', ['NH₃', 'CH₃OH (methanol)'], ['CO₂', 'CH₃OCH₃ (dimethyl ether)', 'SiF₄'], 'NH₃ has N–H and CH₃OH has O–H. In CH₃OCH₃ the hydrogens are bonded to carbon, and CO₂ and SiF₄ have no hydrogen at all.', 'T');
+M('imf', 2, 'Select ALL substances that contain hydrogen bonds.', ['H₂O', 'HF', 'NH₃'], ['CH₄', 'H₂S'], 'H must be bonded to F, O or N. CH₄ and H₂S fail that rule.', 'T');
+imf('methanal (CH₂O)', 'Dipole-dipole', 2, 'CH₂O is a polar molecule but H is bonded to C, not F/O/N.', 'W');
+imf('ethene (C₂H₄)', 'London dispersion', 2, 'Ethene is non-polar so only London forces act.', 'W');
+imf('fluoromethane (CH₃F)', 'Dipole-dipole', 2, 'Polar molecule, but the hydrogens are bonded to carbon, not to F, so no hydrogen bonding.', 'W');
+imf('methane (CH₄)', 'London dispersion', 1, 'Non-polar molecule.', 'X');
+imf('water (H₂O)', 'Hydrogen bonding', 1, 'O–H bonds give hydrogen bonding.', 'X');
+imf('ammonia (NH₃)', 'Hydrogen bonding', 1, 'N–H bonds give hydrogen bonding.', 'X');
+imf('HCl', 'Dipole-dipole', 2, 'Polar, but H is bonded to Cl, which is not F, O or N.', 'X');
+imf('CO₂', 'London dispersion', 2, 'CO₂ is non-polar (symmetrical linear).', 'X');
+imf('SO₂', 'Dipole-dipole', 2, 'Bent and polar.', 'X');
+imf('PCl₃', 'Dipole-dipole', 2, 'Polar, with no H bonded to F, O or N.', 'X');
+imf('HF', 'Hydrogen bonding', 1, 'H bonded directly to F.', 'X');
+imf('Br₂', 'London dispersion', 1, 'Non-polar diatomic.', 'X');
+imf('N₂', 'London dispersion', 1, 'Non-polar diatomic.', 'X');
+imf('ethanol (CH₃CH₂OH)', 'Hydrogen bonding', 2, 'It has an O–H group.', 'X');
+imf('NaCl(s)', 'Ionic bonding', 1, 'Electrostatic attraction between ions.', 'X');
+Q('imf', 3, 'Why does methanol (CH₃OH, bp 64.7°C) have a much higher boiling point than methane (CH₄, bp −164°C)?', 'Methanol has O–H bonds that form hydrogen bonds; methane has only weak London forces', ['Methanol is non-polar', 'Methane has stronger covalent bonds', 'Methane has hydrogen bonding'], 'More energy is needed to separate molecules held by hydrogen bonds.', 'W');
+Q('imf', 2, 'Which has the LOWEST boiling point: NH₃, N₂, H₂O, PCl₃?', 'N₂', ['NH₃', 'H₂O', 'PCl₃'], 'N₂ is non-polar with only London forces. The others are polar or hydrogen-bonded.', 'W');
+Q('imf', 2, 'Which has the HIGHEST boiling point: NH₃, N₂, H₂O, PCl₃?', 'H₂O', ['NH₃', 'N₂', 'PCl₃'], 'Water has strong hydrogen bonding between each molecule (two H and two lone pairs).', 'W');
+Q('imf', 2, 'Boiling points: water 100°C, methanol 65°C, ethanol 78.5°C, nitrogen −195.8°C, mercury 357°C. Which substance has the WEAKEST attractions between particles?', 'Nitrogen', ['Methanol', 'Ethanol', 'Mercury'], 'The lowest boiling point means the weakest forces. N₂ has only London dispersion.', 'W');
+Q('imf', 2, 'Using the same boiling points (water 100°C, methanol 65°C, ethanol 78.5°C, nitrogen −195.8°C, mercury 357°C), which has the STRONGEST attractions?', 'Mercury (metallic bonding)', ['Water', 'Ethanol', 'Nitrogen'], 'The highest boiling point means the strongest forces between particles.', 'W');
+Q('imf', 2, 'Which substance has stronger intermolecular forces, one that is a solid at room temperature or one that is a liquid?', 'The solid', ['The liquid', 'They are always equal', 'It depends only on color'], 'A solid at room temperature has stronger forces holding the particles in fixed positions.', 'W');
+Q('imf', 2, 'Why is the intermolecular force in O₂ weaker than in water?', 'O₂ is non-polar with only London forces; water has hydrogen bonds', ['O₂ has a double bond', 'Water is ionic', 'O₂ is larger'], 'H₂O is polar with O–H hydrogen bonds.', 'W');
+Q('imf', 2, 'As the polarity of a molecule in a dipole-dipole bond increases, the boiling point…', 'increases', ['decreases', 'stays the same', 'drops to zero'], 'Larger partial charges mean stronger attraction between molecules, so more energy is needed to separate them.', 'W');
+Q('imf', 2, 'Why can we use boiling and melting points to rank the strength of intermolecular forces?', 'Stronger forces take more energy (higher temperature) to overcome', ['Boiling breaks covalent bonds', 'Boiling points do not depend on forces', 'Melting adds electrons'], 'Phase changes require breaking attractions between particles.', 'W');
+Q('imf', 2, 'Most dipole-dipole substances are liquids at room temperature while most London dispersion substances are gases. This tells us…', 'dipole-dipole forces are stronger than London forces', ['London forces are stronger', 'both are the same strength', 'London forces are covalent'], 'Stronger forces hold molecules together as liquids at the same temperature.', 'W');
+Q('imf', 2, 'When a substance goes from liquid to solid, intermolecular bonds are…', 'forming (energy is released)', ['breaking (energy absorbed)', 'unchanged', 'converting to covalent bonds'], 'Particles slow down and attract into fixed positions.', 'W');
+Q('imf', 2, 'When a substance goes from solid to liquid, intermolecular forces are…', 'partially broken (energy absorbed)', ['forming', 'unchanged', 'converted into ionic bonds'], 'Melting adds energy so particles can move past each other.', 'X');
+Q('imf', 3, 'Substances A, B and C have boiling points of 380 K, 160 K and 200 K. Which has the WEAKEST intermolecular forces?', 'B (160 K)', ['A (380 K)', 'C (200 K)', 'They are equal'], 'Lower boiling point means weaker forces: B < C < A.', 'T');
+Q('imf', 3, 'Melting points: H₂Te 0°C, CH₄ −200°C, H₂S −50°C, H₂Se −75°C. Which has the strongest bonding between molecules?', 'H₂Te', ['CH₄', 'H₂S', 'H₂Se'], 'Higher melting point means stronger forces. H₂Te is the largest molecule with the strongest London forces.', 'T');
+Q('imf', 3, 'Why do larger non-polar molecules usually have higher boiling points?', 'More electrons make them easier to polarize, so London forces are stronger', ['They contain hydrogen bonds', 'They have ionic bonds', 'They have fewer electrons'], 'Greater polarizability gives stronger London dispersion forces.', 'T');
+Q('imf', 2, 'Which is an example of an INTERmolecular force?', 'Hydrogen bonds between water molecules', ['The O–H bond inside a water molecule', 'The covalent bonds in CH₄', 'The ionic bond within NaCl units'], 'Intermolecular means between molecules.', 'W');
+Q('imf', 2, 'Which is an example of an INTRAmolecular force?', 'The O–H covalent bond in water', ['Hydrogen bonds between water molecules', 'London forces in methane', 'Dipole-dipole forces in HCl'], 'Intramolecular means inside a molecule.', 'W');
+Q('imf', 3, 'How is it determined which intermolecular force is strongest in a substance?', 'Identify the polarity and whether H is bonded to F, O or N; ionic > H-bond > dipole-dipole > London', ['Count the number of atoms', 'Use molar mass only', 'Check the color'], 'Check polarity and shape first, then the FON rule.', 'W');
+/* ---------- REACTION TYPES ---------- */
+Q('types', 1, 'In a SYNTHESIS (combination) reaction…', 'two or more reactants join to form one product', ['one compound splits into two or more products', 'one element replaces another in a compound', 'a hydrocarbon burns in oxygen'], 'Example: N₂ + 3H₂ → 2NH₃.', 'T');
+Q('types', 1, 'In a DECOMPOSITION reaction…', 'one compound breaks into two or more simpler substances', ['two substances combine into one', 'two compounds swap ions', 'oxygen is always a reactant'], 'Example: 2Ag₂O → 4Ag + O₂.', 'T');
+Q('types', 1, 'In a SINGLE DISPLACEMENT reaction…', 'one element takes the place of another element in a compound', ['two compounds swap partners', 'one compound breaks apart', 'two elements join'], 'Example: Zn + CuSO₄ → ZnSO₄ + Cu.', 'T');
+Q('types', 1, 'In a DOUBLE DISPLACEMENT reaction…', 'the positive and negative ions of two compounds swap partners', ['one element replaces another', 'one substance splits', 'a fuel burns'], 'Example: K₂CO₃ + BaCl₂ → 2KCl + BaCO₃.', 'T');
+Q('types', 1, 'A COMBUSTION reaction is when…', 'a substance (often a hydrocarbon) reacts with oxygen to release energy, producing CO₂ and H₂O', ['two ionic compounds swap ions', 'a metal replaces hydrogen in water', 'a compound decomposes into elements'], 'Example: CH₄ + 2O₂ → CO₂ + 2H₂O.', 'T');
+typ('4Na + O₂ → 2Na₂O', 'Synthesis', 1, 'Two reactants form one product.', 'T');
+typ('N₂ + 3H₂ → 2NH₃', 'Synthesis', 1, 'Two elements combine into one compound.', 'T');
+typ('CaO + CO₂ → CaCO₃', 'Synthesis', 1, 'Two compounds combine into one.', 'T');
+typ('Ba + Cl₂ → BaCl₂', 'Synthesis', 1, 'Two elements combine into one compound.', 'W');
+typ('P₂O₃ + 3H₂O → 2H₃PO₃', 'Synthesis', 2, 'Two reactants form a single product.', 'W');
+typ('2Ag₂O → 4Ag + O₂', 'Decomposition', 1, 'One compound breaks into two elements.', 'T');
+typ('2Al(OH)₃ → Al₂O₃ + 3H₂O', 'Decomposition', 2, 'One reactant splits into two products.', 'T');
+typ('2MgO → 2Mg + O₂', 'Decomposition', 1, 'One reactant, two products.', 'T');
+typ('NH₄NO₃ → N₂O + 2H₂O', 'Decomposition', 2, 'One compound breaks into two products.', 'T');
+typ('Zn + H₂SO₄ → ZnSO₄ + H₂', 'Single displacement', 2, 'Zn displaces H from the acid.', 'T');
+typ('2Al + 3Pb(NO₃)₂ → 3Pb + 2Al(NO₃)₃', 'Single displacement', 2, 'Al replaces Pb in the compound.', 'W');
+typ('Mg + 2HCl → MgCl₂ + H₂', 'Single displacement', 2, 'Element + compound → new element + new compound.', 'W');
+typ('Cl₂ + 2NaI → 2NaCl + I₂', 'Single displacement', 2, 'The halogen Cl₂ displaces iodine from NaI.', 'W');
+typ('Zn + CuSO₄ → ZnSO₄ + Cu', 'Single displacement', 2, 'Zn displaces Cu.', 'T');
+typ('Al₂(SO₄)₃ + Ca₃(PO₄)₂ → 3CaSO₄ + 2AlPO₄', 'Double displacement', 3, 'The cations and anions swap partners.', 'T');
+typ('K₂CO₃ + BaCl₂ → 2KCl + BaCO₃', 'Double displacement', 2, 'Two ionic compounds exchange ions.', 'W');
+typ('K₂CrO₄ + Ba(NO₃)₂ → 2KNO₃ + BaCrO₄', 'Double displacement', 2, 'Two compounds swap partners and a precipitate forms.', 'T');
+typ('CH₄ + 2O₂ → CO₂ + 2H₂O', 'Combustion', 1, 'Hydrocarbon burning in oxygen.', 'T');
+typ('C₃H₈ + 5O₂ → 3CO₂ + 4H₂O', 'Combustion', 1, 'Hydrocarbon + O₂ → CO₂ + H₂O.', 'W');
+typ('2C₂H₆ + 7O₂ → 4CO₂ + 6H₂O', 'Combustion', 1, 'Hydrocarbon + O₂ → CO₂ + H₂O.', 'W');
+typ('C₂H₅OH + 3O₂ → 2CO₂ + 3H₂O', 'Combustion', 2, 'An alcohol burning in oxygen to give CO₂ and H₂O.', 'T');
+Q('types', 2, 'What do you look for to recognise a combustion reaction?', 'A carbon-containing compound reacting with O₂ to give CO₂ and H₂O', ['Two compounds swapping ions', 'One compound splitting', 'Two elements forming a compound'], 'The products CO₂ and H₂O are the giveaway.', 'W');
+Q('types', 2, 'What do you look for to recognise a double displacement reaction?', 'Two ionic compounds as reactants, producing two new compounds', ['One element and one compound as reactants', 'Only one reactant', 'Oxygen gas as a reactant'], 'AB + CD → AD + CB.', 'W');
+Q('types', 2, 'What do you look for to recognise a single displacement reaction?', 'An element plus a compound giving a different element plus a different compound', ['Two compounds giving two compounds', 'One reactant giving two products', 'Two elements giving one compound'], 'A + BC → AC + B.', 'W');
+Q('types', 2, 'Which reaction is a decomposition?', '2H₂O → 2H₂ + O₂', ['2Na + Cl₂ → 2NaCl', 'Zn + 2HCl → ZnCl₂ + H₂', 'CH₄ + 2O₂ → CO₂ + 2H₂O'], 'One reactant (water) breaks into two elements.', 'T');
+Q('types', 2, 'Which reaction is a synthesis?', '4Na + O₂ → 2Na₂O', ['2Ag₂O → 4Ag + O₂', 'Mg + 2HCl → MgCl₂ + H₂', 'K₂CO₃ + BaCl₂ → 2KCl + BaCO₃'], 'Two elements form one compound.', 'T');
+Q('types', 2, 'Which reaction is a double displacement?', 'Na₂SO₄ + BaCl₂ → 2NaCl + BaSO₄', ['2Na + Cl₂ → 2NaCl', 'Fe + CuSO₄ → FeSO₄ + Cu', '2KClO₃ → 2KCl + 3O₂'], 'Both reactants are ionic compounds swapping partners.', 'T');
+Q('types', 3, 'Which reaction type produces only one substance?', 'Synthesis', ['Decomposition', 'Single displacement', 'Double displacement'], 'Synthesis combines reactants into one product.', 'T');
+Q('types', 3, '2H₂ + O₂ → 2H₂O can be classified as…', 'Synthesis (and it is also a type of combustion of hydrogen)', ['Decomposition only', 'Double displacement', 'Single displacement'], 'Two elements combine into one compound, so synthesis.', 'X');
+
+/* ---------- BALANCING ---------- */
+bal('bal', 1, 'H₂ + I₂ → HI', 'H₂ + I₂ → 2HI', ['H₂ + I₂ → HI', '2H₂ + I₂ → 2HI', 'H₂ + 2I₂ → 2HI'], null, 'T');
+bal('bal', 1, 'Na + H₂O → NaOH + H₂', '2Na + 2H₂O → 2NaOH + H₂', ['Na + H₂O → NaOH + H₂', '2Na + H₂O → 2NaOH + H₂', 'Na + 2H₂O → 2NaOH + H₂'], null, 'T');
+bal('bal', 2, 'Al + HCl → AlCl₃ + H₂', '2Al + 6HCl → 2AlCl₃ + 3H₂', ['Al + 3HCl → AlCl₃ + H₂', '2Al + 3HCl → 2AlCl₃ + 3H₂', '2Al + 6HCl → 2AlCl₃ + H₂'], null, 'T');
+bal('bal', 2, 'Fe₂O₃ + CO → Fe + CO₂', 'Fe₂O₃ + 3CO → 2Fe + 3CO₂', ['Fe₂O₃ + CO → 2Fe + CO₂', 'Fe₂O₃ + 3CO → Fe + 3CO₂', '2Fe₂O₃ + 3CO → 4Fe + 3CO₂'], null, 'T');
+bal('bal', 1, 'CH₄ + O₂ → CO₂ + H₂O', 'CH₄ + 2O₂ → CO₂ + 2H₂O', ['CH₄ + O₂ → CO₂ + H₂O', '2CH₄ + O₂ → 2CO₂ + H₂O', 'CH₄ + 2O₂ → CO₂ + H₂O'], null, 'T');
+bal('bal', 3, 'Al(C₂H₃O₂)₃ + Mg(OH)₂ → Al(OH)₃ + Mg(C₂H₃O₂)₂', '2Al(C₂H₃O₂)₃ + 3Mg(OH)₂ → 2Al(OH)₃ + 3Mg(C₂H₃O₂)₂', ['Al(C₂H₃O₂)₃ + Mg(OH)₂ → Al(OH)₃ + Mg(C₂H₃O₂)₂', '2Al(C₂H₃O₂)₃ + 2Mg(OH)₂ → 2Al(OH)₃ + 2Mg(C₂H₃O₂)₂', '3Al(C₂H₃O₂)₃ + 2Mg(OH)₂ → 3Al(OH)₃ + 2Mg(C₂H₃O₂)₂'], 'Treat polyatomic ions as one unit. The least common multiple of acetate 3 and 2 is 6, so use 2 Al-acetate and 3 Mg-acetate; hydroxide then needs 3 Mg(OH)₂ giving 6 OH and 2 Al(OH)₃.', 'T');
+bal('bal', 3, 'Al₂(SO₃)₃ + NaOH → Al(OH)₃ + Na₂SO₃', 'Al₂(SO₃)₃ + 6NaOH → 2Al(OH)₃ + 3Na₂SO₃', ['Al₂(SO₃)₃ + 3NaOH → 2Al(OH)₃ + 3Na₂SO₃', 'Al₂(SO₃)₃ + 6NaOH → Al(OH)₃ + 3Na₂SO₃', '2Al₂(SO₃)₃ + 6NaOH → 2Al(OH)₃ + 3Na₂SO₃'], 'Count Al (2), SO₃ (3), Na (6) and OH (6).', 'T');
+bal('bal', 2, 'NH₄NO₃ → N₂O + H₂O', 'NH₄NO₃ → N₂O + 2H₂O', ['NH₄NO₃ → N₂O + H₂O', '2NH₄NO₃ → N₂O + 2H₂O', 'NH₄NO₃ → 2N₂O + 2H₂O'], null, 'T');
+bal('bal', 2, 'C₃H₈ + O₂ → CO₂ + H₂O', 'C₃H₈ + 5O₂ → 3CO₂ + 4H₂O', ['C₃H₈ + 3O₂ → 3CO₂ + 4H₂O', 'C₃H₈ + 4O₂ → 3CO₂ + 4H₂O', 'C₃H₈ + 5O₂ → 3CO₂ + 8H₂O'], null, 'T');
+bal('bal', 2, 'Al + H₂SO₄ → Al₂(SO₄)₃ + H₂', '2Al + 3H₂SO₄ → Al₂(SO₄)₃ + 3H₂', ['Al + H₂SO₄ → Al₂(SO₄)₃ + H₂', '2Al + H₂SO₄ → Al₂(SO₄)₃ + H₂', '2Al + 3H₂SO₄ → Al₂(SO₄)₃ + H₂'], null, 'T');
+bal('bal', 3, 'Cu + HNO₃ → Cu(NO₃)₂ + NO₂ + H₂O', 'Cu + 4HNO₃ → Cu(NO₃)₂ + 2NO₂ + 2H₂O', ['Cu + 2HNO₃ → Cu(NO₃)₂ + NO₂ + H₂O', 'Cu + 4HNO₃ → Cu(NO₃)₂ + NO₂ + 2H₂O', '2Cu + 4HNO₃ → 2Cu(NO₃)₂ + 2NO₂ + 2H₂O'], 'N: 4 = 2 + 2. H: 4 = 2 × 2. O: 12 = 6 + 4 + 2.', 'T');
+bal('bal', 3, 'Cu + HNO₃ → Cu(NO₃)₂ + NO + H₂O', '3Cu + 8HNO₃ → 3Cu(NO₃)₂ + 2NO + 4H₂O', ['Cu + 4HNO₃ → Cu(NO₃)₂ + 2NO + 2H₂O', '3Cu + 4HNO₃ → 3Cu(NO₃)₂ + 2NO + 2H₂O', '3Cu + 8HNO₃ → 3Cu(NO₃)₂ + NO + 4H₂O'], 'N: 8 = 6 + 2. H: 8 = 4 × 2. O: 24 = 18 + 2 + 4.', 'T');
+bal('bal', 2, 'Fe + O₂ → Fe₂O₃', '4Fe + 3O₂ → 2Fe₂O₃', ['2Fe + 3O₂ → Fe₂O₃', 'Fe + O₂ → Fe₂O₃', '4Fe + 6O₂ → 2Fe₂O₃'], null, 'T');
+bal('bal', 1, 'N₂ + H₂ → NH₃', 'N₂ + 3H₂ → 2NH₃', ['N₂ + H₂ → 2NH₃', 'N₂ + 2H₂ → 2NH₃', '2N₂ + 3H₂ → 2NH₃'], null, 'T');
+bal('bal', 2, 'C₂H₅OH + O₂ → CO₂ + H₂O', 'C₂H₅OH + 3O₂ → 2CO₂ + 3H₂O', ['C₂H₅OH + 2O₂ → 2CO₂ + 3H₂O', 'C₂H₅OH + 3O₂ → CO₂ + 3H₂O', 'C₂H₅OH + 4O₂ → 2CO₂ + 3H₂O'], null, 'T');
+bal('bal', 2, 'C₂H₆ + O₂ → CO₂ + H₂O', '2C₂H₆ + 7O₂ → 4CO₂ + 6H₂O', ['C₂H₆ + 7O₂ → 2CO₂ + 3H₂O', '2C₂H₆ + 5O₂ → 4CO₂ + 6H₂O', 'C₂H₆ + 3O₂ → 2CO₂ + 3H₂O'], 'Using ½ coefficients gives C₂H₆ + 3½O₂ → 2CO₂ + 3H₂O. Doubling everything removes the fraction.', 'T');
+bal('bal', 3, 'C₆H₆ + O₂ → CO₂ + H₂O', '2C₆H₆ + 15O₂ → 12CO₂ + 6H₂O', ['C₆H₆ + 15O₂ → 6CO₂ + 3H₂O', '2C₆H₆ + 9O₂ → 12CO₂ + 6H₂O', 'C₆H₆ + 7O₂ → 6CO₂ + 3H₂O'], 'C₆H₆ + 7½O₂ → 6CO₂ + 3H₂O. Doubling gives whole numbers.', 'T');
+bal('bal', 3, 'Fe + H₂O → Fe₃O₄ + H₂', '3Fe + 4H₂O → Fe₃O₄ + 4H₂', ['Fe + H₂O → Fe₃O₄ + H₂', '3Fe + 2H₂O → Fe₃O₄ + 2H₂', '3Fe + 4H₂O → Fe₃O₄ + 2H₂'], 'Fe: 3 = 3. O: 4 = 4. H: 8 = 8.', 'W');
+bal('bal', 3, 'NH₃ + O₂ → NO + H₂O', '4NH₃ + 5O₂ → 4NO + 6H₂O', ['2NH₃ + 3O₂ → 2NO + 3H₂O', '4NH₃ + 3O₂ → 4NO + 6H₂O', 'NH₃ + O₂ → NO + H₂O'], 'N: 4 = 4. H: 12 = 12. O: 10 = 4 + 6.', 'W');
+bal('bal', 3, 'Pb(NO₃)₂ → PbO + NO₂ + O₂', '2Pb(NO₃)₂ → 2PbO + 4NO₂ + O₂', ['Pb(NO₃)₂ → PbO + 2NO₂ + O₂', '2Pb(NO₃)₂ → 2PbO + 2NO₂ + O₂', '2Pb(NO₃)₂ → 2PbO + 4NO₂ + 2O₂'], 'Pb: 2. N: 4. O: 12 = 2 + 8 + 2.', 'W');
+bal('bal', 3, 'MnO₂ + HCl → MnCl₂ + H₂O + Cl₂', 'MnO₂ + 4HCl → MnCl₂ + 2H₂O + Cl₂', ['MnO₂ + 2HCl → MnCl₂ + H₂O + Cl₂', 'MnO₂ + 4HCl → MnCl₂ + H₂O + 2Cl₂', '2MnO₂ + 4HCl → 2MnCl₂ + 2H₂O + Cl₂'], 'Mn: 1. O: 2. H: 4. Cl: 4 = 2 + 2.', 'W');
+bal('bal', 3, 'C₄H₁₀ + O₂ → CO₂ + H₂O', '2C₄H₁₀ + 13O₂ → 8CO₂ + 10H₂O', ['C₄H₁₀ + 13O₂ → 4CO₂ + 5H₂O', '2C₄H₁₀ + 9O₂ → 8CO₂ + 10H₂O', 'C₄H₁₀ + 6O₂ → 4CO₂ + 5H₂O'], 'Half-coefficient: C₄H₁₀ + 6½O₂ → 4CO₂ + 5H₂O. Double to remove the fraction.', 'W');
+bal('bal', 3, 'Ca₃(PO₄)₂ + Al₂(SO₄)₃ → CaSO₄ + AlPO₄', 'Ca₃(PO₄)₂ + Al₂(SO₄)₃ → 3CaSO₄ + 2AlPO₄', ['Ca₃(PO₄)₂ + Al₂(SO₄)₃ → CaSO₄ + AlPO₄', 'Ca₃(PO₄)₂ + Al₂(SO₄)₃ → 3CaSO₄ + AlPO₄', 'Ca₃(PO₄)₂ + 2Al₂(SO₄)₃ → 3CaSO₄ + 2AlPO₄'], 'Ca: 3, PO₄: 2, Al: 2, SO₄: 3.', 'T');
+bal('bal', 1, 'H₂O → H₂ + O₂', '2H₂O → 2H₂ + O₂', ['H₂O → H₂ + O₂', '2H₂O → H₂ + O₂', 'H₂O → 2H₂ + O₂'], null, 'T');
+bal('bal', 2, 'KClO₃ → KCl + O₂', '2KClO₃ → 2KCl + 3O₂', ['KClO₃ → KCl + O₂', '2KClO₃ → 2KCl + O₂', 'KClO₃ → KCl + 3O₂'], null, 'X');
+bal('bal', 2, 'Ca(OH)₂ + HCl → CaCl₂ + H₂O', 'Ca(OH)₂ + 2HCl → CaCl₂ + 2H₂O', ['Ca(OH)₂ + HCl → CaCl₂ + H₂O', 'Ca(OH)₂ + 2HCl → CaCl₂ + H₂O', '2Ca(OH)₂ + 2HCl → 2CaCl₂ + 2H₂O'], null, 'X');
+bal('bal', 2, 'Zn + HCl → ZnCl₂ + H₂', 'Zn + 2HCl → ZnCl₂ + H₂', ['Zn + HCl → ZnCl₂ + H₂', '2Zn + 2HCl → ZnCl₂ + H₂', 'Zn + 2HCl → ZnCl + H₂'], null, 'X');
+bal('bal', 2, 'H₂O₂ → H₂O + O₂', '2H₂O₂ → 2H₂O + O₂', ['H₂O₂ → H₂O + O₂', '2H₂O₂ → H₂O + O₂', 'H₂O₂ → 2H₂O + O₂'], null, 'X');
+bal('bal', 2, 'Al + O₂ → Al₂O₃', '4Al + 3O₂ → 2Al₂O₃', ['2Al + 3O₂ → Al₂O₃', 'Al + O₂ → Al₂O₃', '4Al + 6O₂ → 2Al₂O₃'], null, 'X');
+bal('bal', 2, 'Na₂SO₄ + BaCl₂ → NaCl + BaSO₄', 'Na₂SO₄ + BaCl₂ → 2NaCl + BaSO₄', ['Na₂SO₄ + BaCl₂ → NaCl + BaSO₄', 'Na₂SO₄ + 2BaCl₂ → 2NaCl + BaSO₄', '2Na₂SO₄ + BaCl₂ → 2NaCl + BaSO₄'], null, 'X');
+bal('bal', 2, 'K₂CrO₄ + Ba(NO₃)₂ → KNO₃ + BaCrO₄', 'K₂CrO₄ + Ba(NO₃)₂ → 2KNO₃ + BaCrO₄', ['K₂CrO₄ + Ba(NO₃)₂ → KNO₃ + BaCrO₄', 'K₂CrO₄ + 2Ba(NO₃)₂ → 2KNO₃ + BaCrO₄', '2K₂CrO₄ + Ba(NO₃)₂ → 2KNO₃ + BaCrO₄'], null, 'T');
+bal('bal', 2, 'K₂CO₃ + MgI₂ → MgCO₃ + KI', 'K₂CO₃ + MgI₂ → MgCO₃ + 2KI', ['K₂CO₃ + MgI₂ → MgCO₃ + KI', 'K₂CO₃ + 2MgI₂ → MgCO₃ + 2KI', '2K₂CO₃ + MgI₂ → MgCO₃ + 2KI'], null, 'T');
+Q('bal', 1, 'In C₃H₈ + 5O₂ → 3CO₂ + 4H₂O, how many oxygen atoms are on the product side?', '10', ['5', '7', '14'], '3 × 2 (in CO₂) = 6, plus 4 × 1 (in H₂O) = 4, total 10. This matches 5 × 2 on the left.', 'X');
+Q('bal', 1, 'What is the sum of the coefficients in 2H₂ + O₂ → 2H₂O?', '5', ['3', '4', '6'], '2 + 1 + 2 = 5.', 'X');
+Q('bal', 2, 'What is the coefficient of O₂ when C₄H₁₀ burns (smallest whole numbers)?', '13', ['6', '9', '26'], '2C₄H₁₀ + 13O₂ → 8CO₂ + 10H₂O.', 'T');
+Q('bal', 1, 'Why must chemical equations be balanced?', 'Atoms are conserved: the same number of each atom must appear on both sides', ['To make the equation shorter', 'Because reactants must be larger than products', 'To change the products'], 'Law of conservation of mass.', 'T');
+Q('bal', 2, 'When balancing, you must NOT change…', 'the subscripts in the formulas', ['the coefficients', 'the order you balance elements', 'the number of molecules'], 'Changing a subscript changes the substance. Only change coefficients.', 'T');
+Q('bal', 2, 'In 2Al(OH)₃ → Al₂O₃ + 3H₂O how many hydrogen atoms are on each side?', '6', ['3', '2', '9'], '2 × 3 = 6 on the left, 3 × 2 = 6 on the right.', 'T');
+Q('bal', 2, 'How many oxygen atoms are on the left side of 2Ca(OH)₂?', '4', ['2', '3', '6'], 'Coefficient 2 × 2 O per formula = 4.', 'X');
+Q('bal', 2, 'How many oxygen atoms does 3Mg(NO₃)₂ contain?', '18', ['6', '9', '12'], '3 × 2 nitrate × 3 O = 18.', 'X');
+
+/* ---------- PREDICTING PRODUCTS & REACTIVITY ---------- */
+Q('pred', 2, 'What are the products of Aluminum + Sulfuric acid?', 'Aluminum sulfate + hydrogen', ['Aluminum oxide + water', 'Aluminum hydroxide + sulfur', 'No reaction'], '2Al + 3H₂SO₄ → Al₂(SO₄)₃ + 3H₂. Al is above H in the reactivity series so it displaces H₂.', 'T');
+Q('pred', 2, 'Zinc is placed in copper(II) sulfate solution. What happens?', 'Zn + CuSO₄ → ZnSO₄ + Cu', ['Cu + ZnSO₄ → CuSO₄ + Zn', 'No reaction', 'Zn + CuSO₄ → ZnCu + SO₄'], 'Zn is more reactive than Cu so it displaces Cu from its compound.', 'T');
+Q('pred', 2, 'What happens when copper metal is placed in zinc sulfate solution?', 'No reaction', ['Cu displaces Zn', 'Zinc plates out and copper dissolves', 'Hydrogen gas is released'], 'Cu is less reactive than Zn, so it cannot displace it.', 'T');
+Q('pred', 2, 'Which metal is MORE reactive in Zn + 2AgNO₃ → Zn(NO₃)₂ + 2Ag?', 'Zn', ['Ag', 'They are equal', 'Cannot be told'], 'Zn displaced Ag from its compound, so Zn is more reactive.', 'X');
+Q('pred', 2, 'Which is the correct reactivity order from MOST to LEAST reactive?', 'K > Na > Ca > Mg > Al > Zn > Fe > Pb > H > Cu > Hg > Ag > Au', ['Au > Ag > Hg > Cu > H > Pb > Fe > Zn > Al > Mg > Ca > Na > K', 'K > Ca > Na > Al > Mg > Fe > Zn > Pb > Cu > H > Ag > Hg > Au', 'Na > K > Mg > Ca > Zn > Al > Pb > Fe > H > Cu > Ag > Hg > Au'], 'This is the series from the tutor notes.', 'T');
+Q('pred', 1, 'Which metal is the MOST reactive?', 'K', ['Cu', 'Fe', 'Zn'], 'Potassium is at the top of the reactivity series.', 'T');
+Q('pred', 1, 'Which metal is the LEAST reactive?', 'Au', ['Ag', 'Cu', 'Fe'], 'Gold is at the bottom of the series.', 'T');
+Q('pred', 2, 'Which of these metals will NOT react with dilute hydrochloric acid?', 'Cu', ['Zn', 'Mg', 'Fe'], 'Only metals above hydrogen displace H₂ from acids. Cu is below H.', 'X');
+Q('pred', 3, 'Al₂O₃ + Fe (forming Fe²⁺) →', 'No reaction', ['Al + FeO', 'Fe₂O₃ + Al', 'Al + Fe₂O₃'], 'Fe is less reactive than Al, so it cannot displace Al.', 'T');
+M('pred', 2, 'Select ALL reactions that will actually happen.', ['Mg + ZnSO₄ → MgSO₄ + Zn', 'Fe + CuSO₄ → FeSO₄ + Cu'], ['Cu + MgSO₄ → CuSO₄ + Mg', 'Ag + ZnCl₂ → AgCl₂ + Zn'], 'A metal only displaces a less reactive metal from its compound.', 'X');
+Q('pred', 2, 'What physical changes are seen when an iron nail is dipped in copper(II) sulfate solution for 30 minutes?', 'A reddish-brown copper coating forms on the nail and the blue solution fades to pale green', ['The nail dissolves completely and the solution turns black', 'The solution stays blue and the nail is unchanged', 'The nail turns white and gas bubbles rapidly'], 'Fe + CuSO₄ → FeSO₄ + Cu. Iron is more reactive than copper.', 'X');
+Q('pred', 2, 'What is the balanced equation for iron nail in copper sulfate?', 'Fe + CuSO₄ → FeSO₄ + Cu', ['2Fe + 3CuSO₄ → Fe₂(SO₄)₃ + 3Cu', 'Cu + FeSO₄ → CuSO₄ + Fe', 'Fe + CuSO₄ → Fe₂SO₄ + Cu'], 'Iron forms Fe²⁺ here, so FeSO₄. It is already balanced.', 'X');
+Q('pred', 2, 'Why can copper sulfate solution NOT be stored in a zinc vessel?', 'Zn is more reactive and displaces Cu, so the vessel corrodes: Zn + CuSO₄ → ZnSO₄ + Cu', ['Zn is less reactive than Cu', 'Copper sulfate is a gas', 'Zinc is a nonmetal'], 'The zinc vessel would be eaten away.', 'X');
+Q('pred', 2, 'Complete and balance: Pb(s) + CuCl₂(aq) →', 'PbCl₂(aq) + Cu(s)', ['Pb₂Cl + Cu', 'PbCuCl₂', 'No reaction'], 'Pb is above Cu in the reactivity series, so it displaces Cu. Pb²⁺ + 2Cl⁻ → PbCl₂, balanced as is.', 'X');
+Q('pred', 3, 'Give a specific example of a displacement reaction involving NON-metals.', 'Cl₂ + 2NaBr → 2NaCl + Br₂', ['Zn + CuSO₄ → ZnSO₄ + Cu', 'Mg + 2HCl → MgCl₂ + H₂', 'Br₂ + 2NaCl → 2NaBr + Cl₂'], 'More reactive halogens displace less reactive ones. Cl₂ is more reactive than Br₂, so the reverse does not occur.', 'X');
+Q('pred', 3, 'Which halogen displacement WILL happen?', 'Cl₂ + 2KI → 2KCl + I₂', ['I₂ + 2KCl → 2KI + Cl₂', 'Br₂ + 2KCl → 2KBr + Cl₂', 'I₂ + 2KBr → 2KI + Br₂'], 'Reactivity decreases down group 17: F > Cl > Br > I.', 'X');
+Q('pred', 2, 'Sodium reacts with water. The products are…', 'sodium hydroxide and hydrogen gas', ['sodium oxide and oxygen', 'sodium hydride and oxygen', 'no reaction'], '2Na + 2H₂O → 2NaOH + H₂.', 'T');
+Q('pred', 2, 'Hydrogen + iodine →', 'hydrogen iodide (HI)', ['hydrogen iodate', 'hydrogen oxide', 'H₂I₂'], 'H₂ + I₂ → 2HI.', 'T');
+Q('pred', 2, 'Iron(III) oxide + carbon monoxide →', 'iron + carbon dioxide', ['iron(II) oxide + carbon', 'iron carbonate', 'no reaction'], 'Fe₂O₃ + 3CO → 2Fe + 3CO₂.', 'T');
+Q('pred', 3, 'Predict the products: Al₂(SO₃)₃ + NaOH →', 'Al(OH)₃ + Na₂SO₃', ['Al₂O₃ + Na₂SO₄', 'AlNa + SO₃OH', 'No reaction'], 'In a double displacement the cations swap: Al³⁺ pairs with OH⁻ and Na⁺ pairs with SO₃²⁻.', 'T');
+Q('pred', 2, 'Predict the products: Aluminum acetate + magnesium hydroxide →', 'Aluminum hydroxide + magnesium acetate', ['Aluminum + magnesium acetate hydroxide', 'No reaction', 'Aluminum oxide + water'], 'Double displacement: swap the anions.', 'T');
+Q('pred', 3, 'Predict the products: Sodium sulfate + ammonium nitrate →', 'Sodium nitrate + ammonium sulfate', ['Sodium ammonium + sulfate nitrate', 'No reaction', 'Sodium hydroxide + ammonia'], 'Na₂SO₄ + 2NH₄NO₃ → 2NaNO₃ + (NH₄)₂SO₄.', 'T');
+Q('pred', 3, 'Predict the products: Aluminum sulfate + calcium phosphate →', 'Calcium sulfate + aluminum phosphate', ['Aluminum calcium + sulfate phosphate', 'No reaction', 'Aluminum oxide + calcium sulfate'], 'Al₂(SO₄)₃ + Ca₃(PO₄)₂ → 3CaSO₄ + 2AlPO₄.', 'T');
+Q('pred', 3, 'For elements in the SAME period, what is the same?', 'The number of electron shells', ['The number of valence electrons', 'The atomic mass', 'The atomic number'], 'Elements in a period have the same number of electron shells. Valence electrons change across a period.', 'T');
+Q('pred', 3, 'What are the products when ammonium nitrate decomposes (NH₄NO₃ →)?', 'N₂O + H₂O', ['NH₃ + HNO₃', 'N₂ + O₂', 'NO₂ + H₂'], 'NH₄NO₃ → N₂O + 2H₂O.', 'T');
+
+/* ---------- NET IONIC ---------- */
+Q('net', 2, 'What is a spectator ion?', 'An ion that appears on both sides of the equation unchanged', ['The ion that forms the precipitate', 'An ion that disappears', 'An ion with no charge'], 'Spectator ions do not take part in the reaction. Cancel them to get the net ionic equation.', 'T');
+Q('net', 2, 'Which species is written as separate ions in a complete ionic equation?', 'Aqueous (aq) ionic compounds', ['Solids (s)', 'Liquids (l)', 'Precipitates'], 'Dissolved ionic compounds split into ions. Solids like precipitates are written whole.', 'T');
+Q('net', 3, 'K₂CrO₄(aq) + Ba(NO₃)₂(aq) → 2KNO₃(aq) + BaCrO₄(s). What is the net ionic equation?', 'Ba²⁺(aq) + CrO₄²⁻(aq) → BaCrO₄(s)', ['K⁺(aq) + NO₃⁻(aq) → KNO₃(aq)', '2K⁺(aq) + CrO₄²⁻(aq) → K₂CrO₄(s)', 'Ba²⁺(aq) + 2NO₃⁻(aq) → Ba(NO₃)₂(s)'], 'Cancel K⁺ and NO₃⁻ (spectators). Only barium chromate forms a solid.', 'T');
+Q('net', 3, 'In K₂CrO₄ + Ba(NO₃)₂ → 2KNO₃ + BaCrO₄(s), which ions are spectators?', 'K⁺ and NO₃⁻', ['Ba²⁺ and CrO₄²⁻', 'K⁺ and CrO₄²⁻', 'Ba²⁺ and NO₃⁻'], 'They are present as ions on both sides.', 'T');
+Q('net', 3, 'K₂CO₃(aq) + MgI₂(aq) → MgCO₃(s) + 2KI(aq). What is the net ionic equation?', 'Mg²⁺(aq) + CO₃²⁻(aq) → MgCO₃(s)', ['K⁺(aq) + I⁻(aq) → KI(aq)', '2K⁺(aq) + 2I⁻(aq) → 2KI(s)', 'Mg²⁺(aq) + 2I⁻(aq) → MgI₂(s)'], 'K⁺ and I⁻ are spectators.', 'T');
+Q('net', 3, 'In K₂CO₃ + MgI₂ → MgCO₃(s) + 2KI, which ions are spectators?', 'K⁺ and I⁻', ['Mg²⁺ and CO₃²⁻', 'K⁺ and CO₃²⁻', 'Mg²⁺ and I⁻'], 'They remain dissolved on both sides.', 'T');
+Q('net', 3, 'AgNO₃(aq) + NaCl(aq) → AgCl(s) + NaNO₃(aq). What is the net ionic equation?', 'Ag⁺(aq) + Cl⁻(aq) → AgCl(s)', ['Na⁺(aq) + NO₃⁻(aq) → NaNO₃(aq)', 'Ag⁺(aq) + NO₃⁻(aq) → AgNO₃(s)', 'Na⁺(aq) + Cl⁻(aq) → NaCl(s)'], 'Na⁺ and NO₃⁻ are spectators.', 'X');
+Q('net', 2, 'Which is the correct FIRST step in writing a net ionic equation?', 'Write the balanced molecular equation with states', ['Cancel spectator ions', 'Write only the products', 'Change subscripts'], 'Balanced molecular equation, then split aqueous compounds into ions, cancel spectators.', 'T');
+Q('net', 2, 'The net ionic equation for a precipitation reaction shows…', 'only the ions that combine to form the solid', ['all ions in the solution', 'only the spectator ions', 'only gas products'], 'Everything that does not change is cancelled.', 'T');
+
 </script>
+<script>
+/* ---------- state ---------- */
+var TOPICS=[
+ ['ions','Ions &amp; naming','Polyatomic ions, formulas, ionic vs covalent names'],
+ ['en','Electronegativity','ΔEN cut-offs, polar / non-polar / ionic bonds, trends'],
+ ['bonds','Bond types &amp; properties','Metallic, network, ionic lattice, conductivity, melting points'],
+ ['lewis','Lewis structures','Valence electron counts, lone pairs, octet exceptions'],
+ ['vsepr','VSEPR &amp; geometry','Shapes, bond angles, hybridization, the AXE table'],
+ ['polar','Molecular polarity','Does the shape cancel the dipoles?'],
+ ['imf','Intermolecular forces','London, dipole-dipole, hydrogen bonding, boiling points'],
+ ['types','Reaction types','Synthesis, decomposition, displacement, combustion'],
+ ['bal','Balancing equations','Pick the correctly balanced equation'],
+ ['pred','Predicting products','Reactivity series, displacement, double displacement'],
+ ['net','Net ionic equations','Spectator ions and precipitates']
+];
+var KEY='chemdrills.v1';
+var prog=load();
+var diff=0, queue=[], qi=0, cur=null, chosen=[], tries=0, done=false, scope='mixed';
+
+function load(){try{var r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}catch(e){}
+  return {ans:0,first:0,streak:0,best:0,t:{}}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(prog))}catch(e){}}
+function tp(t){if(!prog.t[t])prog.t[t]={a:0,f:0};return prog.t[t]}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function count(t){return t==='mixed'?BANK.filter(byDiff).length:BANK.filter(function(q){return q.t===t&&byDiff(q)}).length}
+function byDiff(q){return !diff||q.d===diff}
+
+/* ---------- board ---------- */
+function renderBoard(){
+  var tot=BANK.filter(byDiff).length;
+  document.getElementById('sTot').textContent=prog.ans;
+  document.getElementById('sFirst').textContent=prog.ans?Math.round(prog.first/prog.ans*100)+'%':'—';
+  document.getElementById('sStreak').textContent=prog.streak+(prog.best>prog.streak?' / '+prog.best:'');
+  document.getElementById('sBank').textContent=tot;
+  var dc=document.getElementById('diffChips');
+  dc.innerHTML=[[0,'All levels'],[1,'Level 1 · basics'],[2,'Level 2 · core'],[3,'Level 3 · stretch']].map(function(p){
+    return '<button class="chip" type="button" aria-pressed="'+(diff===p[0])+'" data-d="'+p[0]+'">'+p[1]+'</button>'}).join('');
+  var g=document.getElementById('topicGrid');
+  var mixN=count('mixed');
+  var html='<button class="topic mixed" type="button" data-t="mixed"><span class="tt">Mixed review</span>'+
+    '<span class="td">Everything shuffled together — closest to a real test.</span>'+
+    '<span class="meta"><span>'+mixN+' questions ready</span><span>Start →</span></span></button>';
+  html+=TOPICS.map(function(T){
+    var n=count(T[0]); if(!n) return '';
+    var p=tp(T[0]); var pct=p.a?Math.round(p.f/p.a*100):0;
+    return '<button class="topic" type="button" data-t="'+T[0]+'"><span class="tt">'+T[1]+'</span>'+
+      '<span class="td">'+T[2]+'</span>'+
+      '<span class="bar"><i style="width:'+pct+'%"></i></span>'+
+      '<span class="meta"><span>'+n+' questions</span><span>'+(p.a?pct+'% first try':'not started')+'</span></span></button>'
+  }).join('');
+  g.innerHTML=html;
+}
+document.addEventListener('click',function(e){
+  var c=e.target.closest('.chip[data-d]'); if(c){diff=+c.dataset.d;renderBoard();return}
+  var t=e.target.closest('.topic[data-t]'); if(t){start(t.dataset.t);return}
+});
+
+/* ---------- quiz ---------- */
+function start(t){
+  scope=t;
+  var pool=BANK.filter(function(q){return byDiff(q)&&(t==='mixed'||q.t===t)});
+  queue=shuffle(pool); qi=0;
+  document.getElementById('board').hidden=true;
+  document.getElementById('quiz').hidden=false;
+  window.scrollTo(0,0);
+  showQ();
+}
+function back(){
+  document.getElementById('quiz').hidden=true;
+  document.getElementById('board').hidden=false;
+  renderBoard(); window.scrollTo(0,0);
+}
+function label(t){for(var i=0;i<TOPICS.length;i++)if(TOPICS[i][0]===t)return TOPICS[i][1];return 'Mixed'}
+function showQ(){
+  var box=document.getElementById('quiz');
+  if(qi>=queue.length){
+    box.innerHTML='<div class="card"><h2 style="font-size:1.2rem">Set finished</h2>'+
+      '<p style="color:var(--muted);margin:.6rem 0 0">You worked through all '+queue.length+' questions in this set. '+
+      'Streak is now '+prog.streak+'.</p>'+
+      '<div class="actions"><button class="primary" type="button" data-act="again">Shuffle and go again</button>'+
+      '<button class="ghost" type="button" data-act="back">Back to topics</button></div></div>';
+    return;
+  }
+  cur=queue[qi]; chosen=[]; tries=0; done=false;
+  cur._o=cur._o||shuffle(cur.o);
+  var parts=cur.q.split('\n');
+  var qhtml=esc(parts[0])+(parts[1]?'<span class="eq">'+esc(parts.slice(1).join('\n'))+'</span>':'');
+  box.innerHTML='<div class="card">'+
+    '<div class="qhead"><span class="tag">'+label(cur.t)+'</span>'+
+      '<span class="tag d'+cur.d+'">Level '+cur.d+'</span>'+
+      (cur.m?'<span class="tag">Select all</span>':'')+
+      '<span class="qnum">'+(qi+1)+' / '+queue.length+'</span></div>'+
+    '<div class="qtext">'+qhtml+'</div>'+
+    (cur.m?'<div class="hintline">More than one answer is correct — tick every one that applies.</div>':'')+
+    '<div class="opts" id="opts"></div>'+
+    '<div class="actions"><button class="primary" id="checkBtn" type="button" disabled>Check answer</button>'+
+      '<button class="ghost" type="button" data-act="back">Topics</button>'+
+      '<span class="tries" id="tries"></span></div>'+
+    '<div id="fb"></div>'+
+    '<div class="progwrap"><div class="bar"><i style="width:'+Math.round(qi/queue.length*100)+'%"></i></div></div>'+
+  '</div>';
+  renderOpts(); renderTries();
+}
+function renderOpts(){
+  var o=document.getElementById('opts');
+  o.innerHTML=cur._o.map(function(txt,i){
+    var sel=chosen.indexOf(txt)>-1;
+    var cls='opt'+(cur.m?' multi':'');
+    if(done){ if(cur.c.indexOf(txt)>-1)cls+=' correct'; else if(sel)cls+=' wrong' }
+    return '<button class="'+cls+'" type="button" data-i="'+i+'" aria-pressed="'+sel+'"'+(done?' disabled':'')+'>'+
+      '<span class="box">'+(sel||(done&&cur.c.indexOf(txt)>-1)?'✓':String.fromCharCode(65+i))+'</span>'+
+      '<span class="txt">'+esc(txt)+'</span></button>'
+  }).join('');
+}
+function renderTries(){
+  var d=''; for(var i=0;i<3;i++) d+='<i class="'+(i<tries?'used':'')+'"></i>';
+  document.getElementById('tries').innerHTML='Attempts<span class="dots">'+d+'</span>';
+}
+document.addEventListener('click',function(e){
+  var a=e.target.closest('[data-act]');
+  if(a){ if(a.dataset.act==='back')back();
+         else if(a.dataset.act==='next'){qi++;showQ();window.scrollTo(0,0)}
+         else if(a.dataset.act==='again'){start(scope)} return }
+  var op=e.target.closest('.opt'); if(op&&!done){
+    var txt=cur._o[+op.dataset.i];
+    if(cur.m){ var k=chosen.indexOf(txt); if(k>-1)chosen.splice(k,1); else chosen.push(txt) }
+    else chosen=[txt];
+    renderOpts(); document.getElementById('checkBtn').disabled=!chosen.length; return }
+  if(e.target.id==='checkBtn') check();
+});
+function same(a,b){ if(a.length!==b.length)return false; for(var i=0;i<a.length;i++)if(b.indexOf(a[i])<0)return false; return true }
+function check(){
+  if(!chosen.length) return;
+  var right=same(chosen,cur.c);
+  var fb=document.getElementById('fb');
+  var src=SRC[cur.s]||'Extra practice';
+  if(right){
+    done=true; tries++;
+    prog.ans++; if(tries===1)prog.first++;
+    prog.streak=tries===1?prog.streak+1:0; if(prog.streak>prog.best)prog.best=prog.streak;
+    var p=tp(cur.t); p.a++; if(tries===1)p.f++;
+    save(); renderOpts(); renderTries();
+    fb.innerHTML='<div class="feedback ok"><b>'+(tries===1?'Correct — first try.':'Correct.')+'</b>'+
+      '<div class="why">'+esc(cur.x)+'</div><div class="srcline">Source: '+src+'</div></div>'+
+      '<div class="actions"><button class="primary" type="button" data-act="next">Next question →</button></div>';
+    document.getElementById('checkBtn').disabled=true;
+    return;
+  }
+  tries++;
+  if(tries<3){
+    renderTries();
+    var left=3-tries;
+    fb.innerHTML='<div class="feedback no"><b>Not quite.</b><div class="why">'+
+      (cur.m?'Check how many answers should be ticked. ':'')+
+      left+' attempt'+(left===1?'':'s')+' left — have another look.</div></div>';
+    chosen=[]; renderOpts(); document.getElementById('checkBtn').disabled=true;
+  } else {
+    done=true;
+    prog.ans++; prog.streak=0; tp(cur.t).a++; save();
+    renderOpts(); renderTries();
+    fb.innerHTML='<div class="feedback out"><b>Out of attempts. The answer is '+
+      esc(cur.c.join(' + '))+'.</b><div class="why">'+esc(cur.x)+'</div>'+
+      '<div class="srcline">Source: '+src+'</div></div>'+
+      '<div class="actions"><button class="primary" type="button" data-act="next">Next question →</button></div>';
+    document.getElementById('checkBtn').disabled=true;
+  }
+}
+
+/* ---------- chrome ---------- */
+document.getElementById('themeBtn').onclick=function(){
+  var r=document.documentElement;
+  var dark=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme:dark)').matches);
+  r.setAttribute('data-theme',dark?'light':'dark');
+  try{localStorage.setItem(KEY+'.theme',dark?'light':'dark')}catch(e){}
+};
+try{var th=localStorage.getItem(KEY+'.theme'); if(th)document.documentElement.setAttribute('data-theme',th)}catch(e){}
+document.getElementById('resetBtn').onclick=function(){
+  prog={ans:0,first:0,streak:0,best:0,t:{}}; save(); renderBoard();
+  this.textContent='Progress cleared'; var b=this; setTimeout(function(){b.textContent='Reset progress'},1600);
+};
+document.getElementById('sub').innerHTML=BANK.length+' questions · bonding, VSEPR, reactions &amp; equations';
+renderBoard();
+</script>
+
 </body>
 </html>
